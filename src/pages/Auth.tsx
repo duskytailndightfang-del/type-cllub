@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Keyboard, Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -40,12 +40,12 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex items-center justify-center mb-6">
-          <Keyboard className="w-12 h-12 text-blue-600" />
+          <img src="/og logo 512.png" alt="TypeMind AI" className="w-20 h-20" />
         </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">TypeMaster AI</h1>
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">TypeMind AI</h1>
         <p className="text-center text-gray-600 mb-8">
           {isAdminSignUp ? 'Create admin account' : isSignUp ? 'Create your account' : 'Sign in to continue'}
         </p>
@@ -63,7 +63,7 @@ export const Auth: React.FC = () => {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="John Doe"
                     required
                   />
@@ -82,7 +82,7 @@ export const Auth: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="you@example.com"
                 required
               />
@@ -99,7 +99,7 @@ export const Auth: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -116,7 +116,7 @@ export const Auth: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Please wait...' : isAdminSignUp ? 'Create Admin Account' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -130,7 +130,7 @@ export const Auth: React.FC = () => {
                 setIsAdminSignUp(false);
                 setError('');
               }}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="text-purple-600 hover:text-purple-700 text-sm font-medium"
             >
               {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
             </button>

@@ -1,13 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Clock, Target, Volume2 } from 'lucide-react';
+import { ArrowLeft, Clock, Target, Volume2, Award } from 'lucide-react';
+import { LiveKeyboard } from './LiveKeyboard';
+import { useTypingSound } from '../hooks/useTypingSound';
 
 interface TypingLessonProps {
   classData: Class;
   onComplete: () => void;
   onBack: () => void;
 }
+
+const medicalPhrases = [
+  "The patient's vital signs are stable and within normal range.",
+  "Proper hand hygiene prevents the spread of hospital-acquired infections.",
+  "The diagnostic imaging revealed no abnormalities in the chest cavity.",
+  "Administering the prescribed medication according to the dosage schedule is crucial.",
+];
 
 export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplete, onBack }) => {
   const { profile } = useAuth();
@@ -18,14 +27,34 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
+  const [score, setScore] = useState(0);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [isFirstCompletion, setIsFirstCompletion] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { playTypingSound } = useTypingSound();
 
   useEffect(() => {
+    checkIfFirstCompletion();
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  const checkIfFirstCompletion = async () => {
+    try {
+      const { data } = await supabase
+        .from('lesson_completions')
+        .select('id')
+        .eq('user_id', profile?.id)
+        .eq('lesson_id', classData.id)
+        .maybeSingle();
+
+      setIsFirstCompletion(!data);
+    } catch (error) {
+      console.error('Error checking completion:', error);
+    }
+  };
 
   const handleStart = () => {
     setStarted(true);
@@ -39,10 +68,22 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const speakText = () => {
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(classData.content);
-      utterance.rate = 0.8;
+      const phrase = medicalPhrases[Math.floor(Math.random() * medicalPhrases.length)];
+      const utterance = new SpeechSynthesisUtterance(phrase);
+
+      const avgWpm = profile?.level === 'beginner' ? 0.7 : profile?.level === 'intermediate' ? 0.9 : 1.0;
+      utterance.rate = avgWpm;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
       window.speechSynthesis.speak(utterance);
     }
+  };
+
+  const calculateScore = (wpm: number, accuracy: number): number => {
+    const wpmScore = Math.min(wpm * 2, 500);
+    const accuracyScore = accuracy * 5;
+    return Math.round(wpmScore + accuracyScore);
   };
 
   const calculateResults = () => {
@@ -57,9 +98,11 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
       if (userInput[i] === classData.content[i]) correctChars++;
     }
     const calculatedAccuracy = Math.round((correctChars / classData.content.length) * 100);
+    const calculatedScore = calculateScore(calculatedWpm, calculatedAccuracy);
 
     setWpm(calculatedWpm);
     setAccuracy(calculatedAccuracy);
+    setScore(calculatedScore);
     setFinished(true);
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -67,6 +110,13 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
+    const lastChar = value[value.length - 1];
+
+    if (lastChar) {
+      setActiveKey(lastChar);
+      playTypingSound();
+    }
+
     setUserInput(value);
 
     if (value.length >= classData.content.length) {
@@ -76,37 +126,21 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const saveProgress = async () => {
     try {
-      const { data: existingProgress } = await supabase
-        .from('progress')
-        .select('*')
-        .eq('student_id', profile?.id)
-        .eq('class_id', classData.id)
-        .maybeSingle();
+      const { error: completionError } = await supabase
+        .from('lesson_completions')
+        .insert({
+          user_id: profile?.id,
+          lesson_id: classData.id,
+          score,
+          accuracy,
+          wpm,
+          time_spent: timeSpent,
+          is_first_completion: isFirstCompletion,
+        });
 
-      const progressData = {
-        student_id: profile?.id,
-        class_id: classData.id,
-        completed: true,
-        time_spent_minutes: Math.floor(timeSpent / 60),
-        wpm,
-        accuracy,
-        updated_at: new Date().toISOString(),
-      };
+      if (completionError) throw completionError;
 
-      if (existingProgress) {
-        const { error } = await supabase
-          .from('progress')
-          .update(progressData)
-          .eq('id', existingProgress.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('progress')
-          .insert(progressData);
-
-        if (error) throw error;
-      }
+      await supabase.rpc('update_leaderboard_positions');
 
       onComplete();
     } catch (error) {
@@ -129,7 +163,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   if (!started) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
           <button
             onClick={onBack}
@@ -141,16 +175,16 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           <h2 className="text-3xl font-bold text-gray-900 mb-4">{classData.title}</h2>
 
-          <div className="bg-blue-50 rounded-lg p-6 mb-6">
-            <p className="text-gray-700 leading-relaxed">{classData.content}</p>
+          <div className="bg-purple-50 rounded-lg p-6 mb-6">
+            <p className="text-gray-700 leading-relaxed text-lg">{classData.content}</p>
           </div>
 
           <div className="flex gap-4 mb-6">
-            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex-1 bg-white border border-purple-200 rounded-lg p-4">
               <div className="text-sm text-gray-600 mb-1">Level</div>
               <div className="font-semibold text-gray-900 capitalize">{classData.level}</div>
             </div>
-            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex-1 bg-white border border-purple-200 rounded-lg p-4">
               <div className="text-sm text-gray-600 mb-1">Type</div>
               <div className="font-semibold text-gray-900 capitalize">
                 {classData.module_type.replace('_', ' ')}
@@ -158,19 +192,28 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             </div>
           </div>
 
+          {!isFirstCompletion && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <Award className="w-4 h-4 inline mr-2" />
+                You've completed this lesson before. Replaying won't affect your ranking.
+              </p>
+            </div>
+          )}
+
           {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
             <button
               onClick={speakText}
               className="w-full mb-4 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Volume2 className="w-5 h-5" />
-              Play Audio
+              Play Medical Audio
             </button>
           )}
 
           <button
             onClick={handleStart}
-            className="w-full px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+            className="w-full px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium"
           >
             Start Lesson
           </button>
@@ -181,14 +224,25 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   if (finished) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-green-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Lesson Complete!</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Lesson Complete!</h2>
 
-          <div className="grid grid-cols-3 gap-6 mb-6">
+          {isFirstCompletion && (
+            <p className="text-purple-600 font-medium mb-6">+{score} points added to your ranking</p>
+          )}
+          {!isFirstCompletion && (
+            <p className="text-yellow-600 font-medium mb-6">Practice session - no points awarded</p>
+          )}
+
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="bg-purple-50 rounded-lg p-6">
+              <div className="text-3xl font-bold text-purple-600 mb-2">{score}</div>
+              <div className="text-sm text-gray-600">Score</div>
+            </div>
             <div className="bg-blue-50 rounded-lg p-6">
               <div className="text-3xl font-bold text-blue-600 mb-2">{wpm}</div>
               <div className="text-sm text-gray-600">WPM</div>
@@ -197,8 +251,8 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
               <div className="text-3xl font-bold text-green-600 mb-2">{accuracy}%</div>
               <div className="text-sm text-gray-600">Accuracy</div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-6">
-              <div className="text-3xl font-bold text-purple-600 mb-2">{formatTime(timeSpent)}</div>
+            <div className="bg-orange-50 rounded-lg p-6">
+              <div className="text-3xl font-bold text-orange-600 mb-2">{formatTime(timeSpent)}</div>
               <div className="text-sm text-gray-600">Time</div>
             </div>
           </div>
@@ -212,7 +266,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             </button>
             <button
               onClick={saveProgress}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Save Progress
             </button>
@@ -223,8 +277,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
+      <LiveKeyboard activeKey={activeKey} />
+
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full mt-64">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
           <div className="flex items-center gap-4">
@@ -245,7 +301,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
         </div>
 
         {classData.module_type === 'text' && (
-          <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-lg leading-relaxed">
+          <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-2xl leading-relaxed">
             {classData.content.split('').map((char, index) => (
               <span key={index} className={getCharacterClass(index)}>
                 {char}
@@ -258,7 +314,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           ref={inputRef}
           value={userInput}
           onChange={handleInputChange}
-          className="w-full px-6 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg resize-none"
+          className="w-full px-6 py-4 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-2xl resize-none"
           rows={8}
           placeholder="Start typing here..."
           autoFocus
@@ -268,7 +324,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           <div>Progress: {userInput.length} / {classData.content.length} characters</div>
           <button
             onClick={calculateResults}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
           >
             Finish Early
           </button>
