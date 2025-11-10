@@ -132,7 +132,10 @@ export const StudentDashboard: React.FC = () => {
           </p>
           <button
             onClick={signOut}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: '#531B93' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
           >
             Sign Out
           </button>
@@ -154,7 +157,10 @@ export const StudentDashboard: React.FC = () => {
           </p>
           <button
             onClick={signOut}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: '#531B93' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
           >
             Sign Out
           </button>

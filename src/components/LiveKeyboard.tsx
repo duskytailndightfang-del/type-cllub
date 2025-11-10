@@ -29,9 +29,22 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
                      (key === 'SPACE' && highlightedKey === ' ');
 
     if (isActive) {
-      return `${baseClasses} bg-purple-600 text-white border-purple-700 shadow-lg scale-110 transform`;
+      return `${baseClasses} text-white shadow-lg scale-110 transform`;
     }
     return `${baseClasses} bg-white text-gray-700 border-gray-300 shadow-sm hover:bg-gray-50`;
+  };
+
+  const getKeyStyle = (key: string) => {
+    const isActive = highlightedKey === key ||
+                     (key === 'SPACE' && highlightedKey === ' ');
+
+    if (isActive) {
+      return {
+        backgroundColor: '#531B93',
+        borderColor: '#42166f'
+      };
+    }
+    return {};
   };
 
   return (
@@ -44,6 +57,7 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
                 key={key}
                 className={getKeyClasses(key)}
                 style={{
+                  ...getKeyStyle(key),
                   minWidth: key === 'SPACE' ? '300px' : '40px',
                   minHeight: '40px',
                   display: 'flex',

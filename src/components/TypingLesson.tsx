@@ -213,7 +213,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           <button
             onClick={handleStart}
-            className="w-full px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium"
+            className="w-full px-8 py-4 text-white rounded-lg transition-colors text-lg font-medium"
+            style={{ backgroundColor: '#531B93' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
           >
             Start Lesson
           </button>
@@ -266,7 +269,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             </button>
             <button
               onClick={saveProgress}
-              className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex-1 px-6 py-3 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: '#531B93' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
             >
               Save Progress
             </button>
@@ -324,7 +330,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           <div>Progress: {userInput.length} / {classData.content.length} characters</div>
           <button
             onClick={calculateResults}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+            className="px-4 py-2 text-white rounded transition-colors"
+            style={{ backgroundColor: '#531B93' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
           >
             Finish Early
           </button>

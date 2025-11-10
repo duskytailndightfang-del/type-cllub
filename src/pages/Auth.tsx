@@ -116,7 +116,10 @@ export const Auth: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: loading ? '#9ca3af' : '#531B93' }}
+            onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#42166f')}
+            onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = '#531B93')}
           >
             {loading ? 'Please wait...' : isAdminSignUp ? 'Create Admin Account' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -130,7 +133,10 @@ export const Auth: React.FC = () => {
                 setIsAdminSignUp(false);
                 setError('');
               }}
-              className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+              className="text-sm font-medium"
+              style={{ color: '#531B93' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#42166f'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#531B93'}
             >
               {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
             </button>

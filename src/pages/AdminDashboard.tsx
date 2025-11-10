@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, BarChart3, Clock, Target, TrendingUp, Medal } from 'lucide-react';
+import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, BarChart3, Clock, Target, TrendingUp, Medal, Trash2 } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
 
 interface UserRanking {
@@ -82,6 +82,25 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const deleteLesson = async (lessonId: string) => {
+    if (!confirm('Are you sure you want to delete this lesson? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('classes')
+        .delete()
+        .eq('id', lessonId);
+
+      if (error) throw error;
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting lesson:', error);
+      alert('Failed to delete lesson');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -159,7 +178,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: '#531B93' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -174,9 +196,10 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
               activeTab === 'users'
-                ? 'bg-purple-600 text-white shadow-lg'
+                ? 'text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-purple-50'
             }`}
+            style={activeTab === 'users' ? { backgroundColor: '#531B93' } : {}}
           >
             <Users className="w-5 h-5" />
             Users ({users.length})
@@ -185,9 +208,10 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('lessons')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
               activeTab === 'lessons'
-                ? 'bg-purple-600 text-white shadow-lg'
+                ? 'text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-purple-50'
             }`}
+            style={activeTab === 'lessons' ? { backgroundColor: '#531B93' } : {}}
           >
             <BookOpen className="w-5 h-5" />
             Lessons ({lessons.length})
@@ -196,9 +220,10 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('leaderboard')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
               activeTab === 'leaderboard'
-                ? 'bg-purple-600 text-white shadow-lg'
+                ? 'text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-purple-50'
             }`}
+            style={activeTab === 'leaderboard' ? { backgroundColor: '#531B93' } : {}}
           >
             <Trophy className="w-5 h-5" />
             Leaderboard
@@ -324,7 +349,10 @@ export const AdminDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900">Lesson Management</h2>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+                style={{ backgroundColor: '#531B93' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
               >
                 <Plus className="w-5 h-5" />
                 Create Lesson
@@ -333,8 +361,15 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lessons.map((lesson) => (
-                <div key={lesson.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all">
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">{lesson.title}</h3>
+                <div key={lesson.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all relative">
+                  <button
+                    onClick={() => deleteLesson(lesson.id)}
+                    className="absolute top-4 right-4 p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Delete Lesson"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 pr-10">{lesson.title}</h3>
                   <div className="flex gap-2 mb-3">
                     <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
                       {lesson.level}
