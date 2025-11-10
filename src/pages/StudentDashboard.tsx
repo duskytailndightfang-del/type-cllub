@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Class, Progress } from '../lib/supabase';
-import { LogOut, Trophy, Clock, Target, Award, Medal } from 'lucide-react';
+import { LogOut, Trophy, Clock, Target } from 'lucide-react';
 import { InitialAssessment } from '../components/InitialAssessment';
 import { TypingLesson } from '../components/TypingLesson';
 
@@ -60,87 +60,6 @@ export const StudentDashboard: React.FC = () => {
     if (progress.length === 0) return 0;
     const total = progress.reduce((sum, p) => sum + p.wpm, 0);
     return Math.round(total / progress.length);
-  };
-
-  const getThemeColors = () => {
-    if (!profile?.rank_position) {
-      return {
-        gradient: 'from-blue-50 to-blue-100',
-        navBg: 'bg-white',
-        accent: 'blue',
-        badge: 'from-blue-500 to-blue-600'
-      };
-    }
-
-    switch (profile.rank_position) {
-      case 1:
-        return {
-          gradient: 'from-yellow-50 to-amber-100',
-          navBg: 'bg-gradient-to-r from-yellow-400 to-yellow-500',
-          accent: 'yellow',
-          badge: 'from-yellow-400 to-yellow-600'
-        };
-      case 2:
-        return {
-          gradient: 'from-gray-50 to-slate-100',
-          navBg: 'bg-gradient-to-r from-gray-300 to-gray-400',
-          accent: 'gray',
-          badge: 'from-gray-300 to-gray-500'
-        };
-      case 3:
-        return {
-          gradient: 'from-orange-50 to-orange-100',
-          navBg: 'bg-gradient-to-r from-orange-400 to-orange-500',
-          accent: 'orange',
-          badge: 'from-orange-400 to-orange-600'
-        };
-      default:
-        return {
-          gradient: 'from-blue-50 to-blue-100',
-          navBg: 'bg-white',
-          accent: 'blue',
-          badge: 'from-blue-500 to-blue-600'
-        };
-    }
-  };
-
-  const getRankBadge = () => {
-    if (!profile?.rank_position) return null;
-
-    const icons = {
-      1: { icon: Trophy, color: 'text-yellow-600', title: 'Gold Champion' },
-      2: { icon: Medal, color: 'text-gray-600', title: 'Silver Elite' },
-      3: { icon: Award, color: 'text-orange-600', title: 'Bronze Master' }
-    };
-
-    const rank = icons[profile.rank_position as keyof typeof icons];
-    if (!rank) return null;
-
-    const Icon = rank.icon;
-    return (
-      <div className="flex items-center gap-2">
-        <Icon className={`w-6 h-6 ${rank.color}`} />
-        <span className={`font-bold ${rank.color}`}>{rank.title}</span>
-      </div>
-    );
-  };
-
-  const getRankGradeBadge = () => {
-    if (!profile?.rank_grade) return null;
-
-    const colors: Record<string, string> = {
-      'S': 'from-purple-500 to-pink-500',
-      'A': 'from-blue-500 to-cyan-500',
-      'B': 'from-green-500 to-emerald-500',
-      'C': 'from-yellow-500 to-orange-500',
-      'D': 'from-gray-500 to-slate-500'
-    };
-
-    return (
-      <span className={`px-4 py-2 bg-gradient-to-r ${colors[profile.rank_grade]} text-white rounded-full text-sm font-bold shadow-lg`}>
-        {profile.rank_grade}-Rank
-      </span>
-    );
   };
 
   const handleAssessmentComplete = () => {
@@ -217,30 +136,14 @@ export const StudentDashboard: React.FC = () => {
     );
   }
 
-  const theme = getThemeColors();
-
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${theme.gradient}`}>
-      <nav className={`${theme.navBg} shadow-lg ${theme.navBg === 'bg-white' ? 'border-b border-gray-200' : ''}`}>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <div className="flex items-center gap-4">
-                <h1 className={`text-2xl font-bold ${theme.navBg === 'bg-white' ? 'text-gray-900' : 'text-white'}`}>
-                  Student Dashboard
-                </h1>
-                {getRankBadge()}
-              </div>
-              <div className="flex items-center gap-3 mt-1">
-                <p className={`text-sm ${theme.navBg === 'bg-white' ? 'text-gray-600' : 'text-white/90'}`}>
-                  Welcome back, {profile?.full_name}
-                </p>
-                {profile?.total_points !== undefined && (
-                  <span className={`px-3 py-1 ${theme.navBg === 'bg-white' ? 'bg-blue-100 text-blue-600' : 'bg-white/20 text-white'} rounded-full text-xs font-semibold`}>
-                    {profile.total_points} points
-                  </span>
-                )}
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
+              <p className="text-sm text-gray-600">Welcome back, {profile?.full_name}</p>
             </div>
             <button
               onClick={signOut}
@@ -283,12 +186,9 @@ export const StudentDashboard: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">Your Level</h2>
-            <div className="flex items-center gap-3">
-              <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {profile?.level?.charAt(0).toUpperCase() + profile?.level?.slice(1)}
-              </span>
-              {getRankGradeBadge()}
-            </div>
+            <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+              {profile?.level?.charAt(0).toUpperCase() + profile?.level?.slice(1)}
+            </span>
           </div>
         </div>
 

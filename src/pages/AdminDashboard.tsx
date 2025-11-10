@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, TrendingUp, BarChart } from 'lucide-react';
+import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
-import { Leaderboard } from '../components/Leaderboard';
-import { UserAnalytics } from '../components/UserAnalytics';
 
 export const AdminDashboard: React.FC = () => {
   const { signOut, profile } = useAuth();
@@ -12,8 +10,7 @@ export const AdminDashboard: React.FC = () => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'students' | 'classes' | 'leaderboard'>('students');
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'students' | 'classes'>('students');
 
   useEffect(() => {
     fetchData();
@@ -44,21 +41,15 @@ export const AdminDashboard: React.FC = () => {
 
   const updateStudentStatus = async (studentId: string, status: 'approved' | 'denied') => {
     try {
-      if (status === 'approved') {
-        const { error } = await supabase.rpc('approve_user', {
-          user_id_to_approve: studentId
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.rpc('reject_user', {
-          user_id_to_reject: studentId
-        });
-        if (error) throw error;
-      }
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', studentId);
+
+      if (error) throw error;
       fetchData();
     } catch (error) {
       console.error('Error updating student status:', error);
-      alert('Failed to update student status. Please try again.');
     }
   };
 
@@ -141,17 +132,6 @@ export const AdminDashboard: React.FC = () => {
             <BookOpen className="w-5 h-5" />
             Classes ({classes.length})
           </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-              activeTab === 'leaderboard'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <TrendingUp className="w-5 h-5" />
-            Leaderboard
-          </button>
         </div>
 
         {activeTab === 'students' && (
@@ -194,13 +174,6 @@ export const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => setSelectedUserId(student.id)}
-                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                          >
-                            <BarChart className="w-4 h-4" />
-                            View
-                          </button>
                           {student.status !== 'approved' && (
                             <button
                               onClick={() => updateStudentStatus(student.id, 'approved')}
@@ -233,8 +206,6 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
-
-        {activeTab === 'leaderboard' && <Leaderboard />}
 
         {activeTab === 'classes' && (
           <div>
@@ -281,13 +252,6 @@ export const AdminDashboard: React.FC = () => {
             setShowCreateModal(false);
             fetchData();
           }}
-        />
-      )}
-
-      {selectedUserId && (
-        <UserAnalytics
-          userId={selectedUserId}
-          onClose={() => setSelectedUserId(null)}
         />
       )}
     </div>
