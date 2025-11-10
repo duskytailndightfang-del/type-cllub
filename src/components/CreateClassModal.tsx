@@ -2,29 +2,17 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  healthcareSampleTexts,
+  getHealthcareSampleByLevel,
+  getHealthcareAudioSentence,
+  getHealthcareAudioParagraph
+} from '../data/healthcareContent';
 
 interface CreateClassModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const sampleTexts = {
-  beginner: [
-    'The quick brown fox jumps over the lazy dog. Practice makes perfect. Keep your fingers on the home row.',
-    'Learning to type is fun and easy. Start slow and build your speed over time. Focus on accuracy first.',
-    'Hello world. Welcome to typing class. The keyboard is your friend. Practice daily for best results.',
-  ],
-  intermediate: [
-    'Developing good typing habits requires consistent practice and attention to proper finger placement. Remember to take breaks.',
-    'Professional communication often depends on quick and accurate typing skills in the modern workplace.',
-    'The advancement of technology has made typing an essential skill for students and professionals alike.',
-  ],
-  advanced: [
-    'Mastering the art of touch typing involves developing muscle memory through repetitive practice, maintaining proper posture, and gradually increasing your speed while ensuring accuracy remains consistently high throughout extended typing sessions.',
-    'Contemporary digital communication necessitates proficiency in rapid text input, which can significantly enhance productivity and professional capabilities across diverse industries and technological platforms.',
-    'The integration of artificial intelligence and machine learning technologies has revolutionized how we interact with computers, yet fundamental typing skills remain crucial for effective human-computer interaction.',
-  ],
-};
 
 export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onSuccess }) => {
   const { profile } = useAuth();
@@ -35,14 +23,22 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   const [loading, setLoading] = useState(false);
 
   const generateContent = () => {
-    if (level === 'all') {
-      const allTexts = [...sampleTexts.beginner, ...sampleTexts.intermediate, ...sampleTexts.advanced];
-      const randomText = allTexts[Math.floor(Math.random() * allTexts.length)];
-      setContent(randomText);
+    if (moduleType === 'audio_sentence') {
+      setContent(getHealthcareAudioSentence());
+    } else if (moduleType === 'audio_paragraph') {
+      setContent(getHealthcareAudioParagraph());
     } else {
-      const texts = sampleTexts[level];
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setContent(randomText);
+      if (level === 'all') {
+        const allTexts = [
+          ...healthcareSampleTexts.beginner,
+          ...healthcareSampleTexts.intermediate,
+          ...healthcareSampleTexts.advanced
+        ];
+        const randomText = allTexts[Math.floor(Math.random() * allTexts.length)];
+        setContent(randomText);
+      } else {
+        setContent(getHealthcareSampleByLevel(level));
+      }
     }
   };
 

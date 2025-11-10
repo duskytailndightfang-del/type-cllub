@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Clock, Target, Volume2 } from 'lucide-react';
+import { VirtualKeyboard } from './VirtualKeyboard';
 
 interface TypingLessonProps {
   classData: Class;
@@ -18,6 +19,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -72,6 +74,11 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     if (value.length >= classData.content.length) {
       calculateResults();
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    setPressedKey(e.key);
+    setTimeout(() => setPressedKey(null), 150);
   };
 
   const saveProgress = async () => {
@@ -223,56 +230,61 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
-          <div className="flex items-center gap-4">
-            {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
-              <button
-                onClick={speakText}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Volume2 className="w-4 h-4" />
-                Play
-              </button>
-            )}
-            <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
-              <Clock className="w-5 h-5" />
-              <span className="font-mono font-medium">{formatTime(timeSpent)}</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 py-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
+            <div className="flex items-center gap-4">
+              {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
+                <button
+                  onClick={speakText}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  Play
+                </button>
+              )}
+              <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+                <Clock className="w-5 h-5" />
+                <span className="font-mono font-medium">{formatTime(timeSpent)}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {classData.module_type === 'text' && (
-          <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-lg leading-relaxed">
-            {classData.content.split('').map((char, index) => (
-              <span key={index} className={getCharacterClass(index)}>
-                {char}
-              </span>
-            ))}
+          {classData.module_type === 'text' && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-lg leading-relaxed">
+              {classData.content.split('').map((char, index) => (
+                <span key={index} className={getCharacterClass(index)}>
+                  {char}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <textarea
+            ref={inputRef}
+            value={userInput}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-6 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg resize-none"
+            rows={8}
+            placeholder="Start typing here..."
+            autoFocus
+          />
+
+          <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+            <div>Progress: {userInput.length} / {classData.content.length} characters</div>
+            <button
+              onClick={calculateResults}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Finish Early
+            </button>
           </div>
-        )}
-
-        <textarea
-          ref={inputRef}
-          value={userInput}
-          onChange={handleInputChange}
-          className="w-full px-6 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg resize-none"
-          rows={8}
-          placeholder="Start typing here..."
-          autoFocus
-        />
-
-        <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
-          <div>Progress: {userInput.length} / {classData.content.length} characters</div>
-          <button
-            onClick={calculateResults}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Finish Early
-          </button>
         </div>
+
+        <VirtualKeyboard pressedKey={pressedKey} />
       </div>
     </div>
   );
