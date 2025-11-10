@@ -76,16 +76,23 @@ export const InitialAssessment: React.FC<InitialAssessmentProps> = ({ onComplete
 
   const saveResults = async () => {
     try {
+      if (!profile?.id) {
+        throw new Error('User profile not found');
+      }
+
       const { error: assessmentError } = await supabase
         .from('assessments')
         .insert({
-          student_id: profile?.id,
+          student_id: profile.id,
           wpm,
           accuracy,
           text_content: text,
         });
 
-      if (assessmentError) throw assessmentError;
+      if (assessmentError) {
+        console.error('Assessment insert error:', assessmentError);
+        throw assessmentError;
+      }
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -93,14 +100,17 @@ export const InitialAssessment: React.FC<InitialAssessmentProps> = ({ onComplete
           level,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', profile?.id);
+        .eq('id', profile.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw profileError;
+      }
 
       onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving results:', error);
-      alert('Failed to save results');
+      alert(`Failed to save results: ${error.message || 'Unknown error'}`);
     }
   };
 
