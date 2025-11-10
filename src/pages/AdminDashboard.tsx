@@ -1,25 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, Clock, Target, TrendingUp, Medal, Trash2 } from 'lucide-react';
+import {
+  LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, Clock, Target,
+  TrendingUp, Medal, Trash2, Activity, Award, Zap, BarChart3, PieChart,
+  Brain, Sparkles, UserCheck, UserX, Timer
+} from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
 import { StudentAnalytics } from '../components/StudentAnalytics';
 
 interface UserRanking {
   user_id: string;
-  total_score: number;
-  rank_level: string;
-  proficiency_level: string;
-  total_lessons_completed: number;
-  total_time_spent: number;
+  total_points: number;
+  rank_grade: string;
+  rank_category: string;
+  total_time_hours: number;
   average_accuracy: number;
   average_wpm: number;
-  leaderboard_position: number;
+  overall_position: number;
+  category_position: number;
   theme: string;
 }
 
 interface UserWithRanking extends Profile {
   ranking?: UserRanking;
+}
+
+interface DashboardStats {
+  totalStudents: number;
+  approvedStudents: number;
+  pendingStudents: number;
+  totalLessons: number;
+  totalCompletions: number;
+  totalPointsAwarded: number;
+  avgWpm: number;
+  avgAccuracy: number;
 }
 
 export const AdminDashboard: React.FC = () => {
@@ -28,8 +43,18 @@ export const AdminDashboard: React.FC = () => {
   const [lessons, setLessons] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'lessons' | 'leaderboard'>('users');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'lessons' | 'leaderboard'>('dashboard');
   const [selectedUser, setSelectedUser] = useState<UserWithRanking | null>(null);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalStudents: 0,
+    approvedStudents: 0,
+    pendingStudents: 0,
+    totalLessons: 0,
+    totalCompletions: 0,
+    totalPointsAwarded: 0,
+    avgWpm: 0,
+    avgAccuracy: 0
+  });
 
   useEffect(() => {
     fetchData();
@@ -38,34 +63,77 @@ export const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'student')
-        .order('created_at', { ascending: false });
+      const [usersData, rankingsData, lessonsData, statsData] = await Promise.all([
+        supabase.from('profiles').select('*').eq('role', 'student').order('created_at', { ascending: false }),
+        supabase.from('user_rankings').select('*'),
+        supabase.from('classes').select('*').order('created_at', { ascending: false }),
+        fetchStats()
+      ]);
 
-      const { data: rankingsData } = await supabase
-        .from('user_rankings')
-        .select('*');
-
-      const { data: lessonsData } = await supabase
-        .from('classes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (usersData && rankingsData) {
-        const usersWithRankings = usersData.map(user => ({
+      if (usersData.data && rankingsData.data) {
+        const usersWithRankings = usersData.data.map(user => ({
           ...user,
-          ranking: rankingsData.find((r: UserRanking) => r.user_id === user.id)
+          ranking: rankingsData.data.find((r: UserRanking) => r.user_id === user.id)
         }));
         setUsers(usersWithRankings);
       }
 
-      if (lessonsData) setLessons(lessonsData);
+      if (lessonsData.data) setLessons(lessonsData.data);
+      if (statsData) setStats(statsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async (): Promise<DashboardStats> => {
+    try {
+      const { data: studentStats } = await supabase.rpc('execute_sql', {
+        query: `
+          SELECT
+            COUNT(*) as total_students,
+            COUNT(*) FILTER (WHERE status = 'approved') as approved_students,
+            COUNT(*) FILTER (WHERE status = 'pending') as pending_students
+          FROM profiles WHERE role = 'student'
+        `
+      });
+
+      const { data: lessonCount } = await supabase.from('classes').select('id', { count: 'exact', head: true });
+
+      const { data: completionStats } = await supabase.rpc('execute_sql', {
+        query: `
+          SELECT
+            COUNT(*) as total_completions,
+            COALESCE(SUM(score), 0) as total_points_awarded,
+            COALESCE(AVG(wpm), 0) as avg_wpm,
+            COALESCE(AVG(accuracy), 0) as avg_accuracy
+          FROM lesson_completions
+        `
+      });
+
+      return {
+        totalStudents: studentStats?.[0]?.total_students || 0,
+        approvedStudents: studentStats?.[0]?.approved_students || 0,
+        pendingStudents: studentStats?.[0]?.pending_students || 0,
+        totalLessons: lessonCount?.count || 0,
+        totalCompletions: completionStats?.[0]?.total_completions || 0,
+        totalPointsAwarded: completionStats?.[0]?.total_points_awarded || 0,
+        avgWpm: Math.round(completionStats?.[0]?.avg_wpm || 0),
+        avgAccuracy: Math.round(completionStats?.[0]?.avg_accuracy || 0)
+      };
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      return {
+        totalStudents: users.length,
+        approvedStudents: users.filter(u => u.status === 'approved').length,
+        pendingStudents: users.filter(u => u.status === 'pending').length,
+        totalLessons: lessons.length,
+        totalCompletions: 0,
+        totalPointsAwarded: 0,
+        avgWpm: 0,
+        avgAccuracy: 0
+      };
     }
   };
 
@@ -89,11 +157,7 @@ export const AdminDashboard: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('classes')
-        .delete()
-        .eq('id', lessonId);
-
+      const { error } = await supabase.from('classes').delete().eq('id', lessonId);
       if (error) throw error;
       fetchData();
     } catch (error) {
@@ -104,12 +168,12 @@ export const AdminDashboard: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      denied: 'bg-red-100 text-red-800',
+      pending: 'bg-amber-100 text-amber-700 border-amber-300',
+      approved: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+      denied: 'bg-rose-100 text-rose-700 border-rose-300',
     };
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[status as keyof typeof styles]}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -118,12 +182,12 @@ export const AdminDashboard: React.FC = () => {
   const getLevelBadge = (level?: string) => {
     if (!level) return <span className="text-gray-400 text-sm">Not assessed</span>;
     const styles = {
-      beginner: 'bg-blue-100 text-blue-800',
-      intermediate: 'bg-orange-100 text-orange-800',
-      advanced: 'bg-purple-100 text-purple-800',
+      beginner: 'bg-sky-100 text-sky-700 border-sky-300',
+      intermediate: 'bg-orange-100 text-orange-700 border-orange-300',
+      advanced: 'bg-purple-100 text-purple-700 border-purple-300',
     };
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[level as keyof typeof styles]}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[level as keyof typeof styles]}`}>
         {level.charAt(0).toUpperCase() + level.slice(1)}
       </span>
     );
@@ -131,58 +195,55 @@ export const AdminDashboard: React.FC = () => {
 
   const getRankBadge = (rank: string) => {
     const colors: Record<string, string> = {
-      'S': 'bg-yellow-100 text-yellow-800',
-      'A': 'bg-green-100 text-green-800',
-      'B': 'bg-blue-100 text-blue-800',
-      'C': 'bg-orange-100 text-orange-800',
-      'D': 'bg-gray-100 text-gray-800',
+      'S-Rank': 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-400',
+      'A-Rank': 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 border-emerald-400',
+      'B-Rank': 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border-blue-400',
+      'C-Rank': 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border-orange-400',
+      'D-Rank': 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-800 border-slate-400',
     };
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors[rank] || colors['D']}`}>
-        Rank {rank}
+      <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${colors[rank] || colors['D-Rank']}`}>
+        {rank}
       </span>
     );
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
   };
 
   const getLeaderboardUsers = () => {
     return [...users]
       .filter(u => u.ranking)
-      .sort((a, b) => (b.ranking?.leaderboard_position || 999) - (a.ranking?.leaderboard_position || 999))
-      .sort((a, b) => (a.ranking?.leaderboard_position || 999) - (b.ranking?.leaderboard_position || 999));
+      .sort((a, b) => (a.ranking?.overall_position || 999) - (b.ranking?.overall_position || 999));
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-        <div className="text-purple-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <div className="text-slate-600 font-medium">Loading dashboard...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
-      <nav className="bg-white/80 backdrop-blur-sm shadow-lg border-b-2 border-purple-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <nav className="bg-white/90 backdrop-blur-lg shadow-lg border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <img src="/og logo 512.png" alt="TypeMind AI" className="w-12 h-12" />
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">TypeMind AI - Admin Panel</h1>
-                <p className="text-sm text-gray-600">Welcome, {profile?.full_name}</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  TypeMind AI
+                </h1>
+                <p className="text-sm text-slate-600">Administrator Dashboard</p>
               </div>
             </div>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: '#531B93' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl font-medium"
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -192,72 +253,230 @@ export const AdminDashboard: React.FC = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-4 mb-6 flex-wrap">
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-              activeTab === 'users'
-                ? 'text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-purple-50'
-            }`}
-            style={activeTab === 'users' ? { backgroundColor: '#531B93' } : {}}
-          >
-            <Users className="w-5 h-5" />
-            Users ({users.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('lessons')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-              activeTab === 'lessons'
-                ? 'text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-purple-50'
-            }`}
-            style={activeTab === 'lessons' ? { backgroundColor: '#531B93' } : {}}
-          >
-            <BookOpen className="w-5 h-5" />
-            Lessons ({lessons.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-              activeTab === 'leaderboard'
-                ? 'text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-purple-50'
-            }`}
-            style={activeTab === 'leaderboard' ? { backgroundColor: '#531B93' } : {}}
-          >
-            <Trophy className="w-5 h-5" />
-            Leaderboard
-          </button>
+        <div className="flex gap-3 mb-8 flex-wrap">
+          {[
+            { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+            { id: 'users', icon: Users, label: `Users (${users.length})` },
+            { id: 'lessons', icon: BookOpen, label: `Lessons (${lessons.length})` },
+            { id: 'leaderboard', icon: Trophy, label: 'Leaderboard' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white scale-105'
+                  : 'bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
         </div>
+
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <Sparkles className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalStudents}</div>
+                <div className="text-sm text-slate-600 font-medium">Total Students</div>
+                <div className="mt-3 flex gap-2 text-xs">
+                  <span className="text-emerald-600 font-semibold">✓ {stats.approvedStudents} Active</span>
+                  <span className="text-amber-600 font-semibold">⏳ {stats.pendingStudents} Pending</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-3 rounded-xl">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <Target className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalLessons}</div>
+                <div className="text-sm text-slate-600 font-medium">Total Lessons</div>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="h-2 flex-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-full"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl">
+                    <Activity className="w-6 h-6 text-white" />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalCompletions}</div>
+                <div className="text-sm text-slate-600 font-medium">Lesson Completions</div>
+                <div className="mt-3 text-xs text-purple-600 font-semibold">
+                  {stats.totalPointsAwarded.toLocaleString()} Points Awarded
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-gradient-to-br from-amber-500 to-amber-600 p-3 rounded-xl">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <Award className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-1">{stats.avgWpm}</div>
+                <div className="text-sm text-slate-600 font-medium">Avg. WPM</div>
+                <div className="mt-3 text-xs text-slate-600 font-medium">
+                  {stats.avgAccuracy}% Avg. Accuracy
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <PieChart className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-slate-900">Student Status Distribution</h3>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        <UserCheck className="w-4 h-4 text-emerald-600" />
+                        Approved Students
+                      </span>
+                      <span className="text-sm font-bold text-emerald-600">{stats.approvedStudents}</span>
+                    </div>
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all"
+                        style={{ width: `${stats.totalStudents > 0 ? (stats.approvedStudents / stats.totalStudents) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        <Timer className="w-4 h-4 text-amber-600" />
+                        Pending Approval
+                      </span>
+                      <span className="text-sm font-bold text-amber-600">{stats.pendingStudents}</span>
+                    </div>
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all"
+                        style={{ width: `${stats.totalStudents > 0 ? (stats.pendingStudents / stats.totalStudents) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <Trophy className="w-6 h-6 text-amber-600" />
+                  <h3 className="text-xl font-bold text-slate-900">Top Performers</h3>
+                </div>
+                <div className="space-y-3">
+                  {getLeaderboardUsers().slice(0, 3).map((user, index) => (
+                    <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
+                        index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400' :
+                        'bg-gradient-to-br from-orange-400 to-orange-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-900 truncate">{user.full_name}</div>
+                        <div className="text-xs text-slate-600">{user.ranking?.total_points} points</div>
+                      </div>
+                      {user.ranking && getRankBadge(user.ranking.rank_grade)}
+                    </div>
+                  ))}
+                  {getLeaderboardUsers().length === 0 && (
+                    <div className="text-center py-8 text-slate-400">
+                      <Trophy className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No rankings yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-8 text-white">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
+                  <Target className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Platform Insights</h3>
+                  <p className="text-blue-100">Real-time analytics and metrics</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-3xl font-bold mb-1">
+                    {users.filter(u => u.ranking).length}
+                  </div>
+                  <div className="text-sm text-blue-100">Active Learners</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-3xl font-bold mb-1">
+                    {stats.totalCompletions > 0 ? Math.round(stats.totalCompletions / stats.totalLessons) : 0}
+                  </div>
+                  <div className="text-sm text-blue-100">Avg. Completions/Lesson</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-3xl font-bold mb-1">
+                    {users.filter(u => u.ranking && u.ranking.overall_position <= 10).length}
+                  </div>
+                  <div className="text-sm text-blue-100">Top 10 Users</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-3xl font-bold mb-1">
+                    {Math.round((stats.approvedStudents / Math.max(stats.totalStudents, 1)) * 100)}%
+                  </div>
+                  <div className="text-sm text-blue-100">Approval Rate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'users' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-purple-200">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-purple-50">
+                <table className="min-w-full divide-y divide-slate-200">
+                  <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Level</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Rank</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Level</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Rank</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-slate-100">
                     {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-purple-50 transition-colors cursor-pointer" onClick={() => setSelectedUser(user)}>
+                      <tr key={user.id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedUser(user)}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                          <div className="font-semibold text-slate-900">{user.full_name}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">{user.email}</div>
+                          <div className="text-sm text-slate-600">{user.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">{getLevelBadge(user.level)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {user.ranking ? getRankBadge(user.ranking.rank_level) : <span className="text-gray-400 text-sm">No rank</span>}
+                          {user.ranking ? getRankBadge(user.ranking.rank_grade) : <span className="text-slate-400 text-sm">No rank</span>}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(user.status)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -265,14 +484,14 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => updateUserStatus(user.id, 'approved')}
-                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
                                 title="Approve"
                               >
                                 <CheckCircle className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => updateUserStatus(user.id, 'denied')}
-                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                className="p-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors"
                                 title="Deny"
                               >
                                 <XCircle className="w-4 h-4" />
@@ -298,41 +517,41 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'lessons' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Lesson Management</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Lesson Management</h2>
+                <p className="text-slate-600 mt-1">Create and manage typing lessons</p>
+              </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
-                style={{ backgroundColor: '#531B93' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold"
               >
                 <Plus className="w-5 h-5" />
                 Create Lesson
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {lessons.map((lesson) => (
-                <div key={lesson.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all relative">
+                <div key={lesson.id} className="border-2 border-slate-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-xl transition-all relative bg-gradient-to-br from-white to-slate-50">
                   <button
                     onClick={() => deleteLesson(lesson.id)}
-                    className="absolute top-4 right-4 p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    className="absolute top-4 right-4 p-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors"
                     title="Delete Lesson"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 pr-10">{lesson.title}</h3>
-                  <div className="flex gap-2 mb-3">
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                  <h3 className="font-bold text-lg text-slate-900 mb-3 pr-10">{lesson.title}</h3>
+                  <div className="flex gap-2 mb-4">
+                    <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 text-xs rounded-full font-semibold capitalize">
                       {lesson.level}
                     </span>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
+                    <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 text-xs rounded-full font-semibold capitalize">
                       {lesson.module_type.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm line-clamp-3">{lesson.content}</p>
+                  <p className="text-slate-600 text-sm line-clamp-3">{lesson.content}</p>
                 </div>
               ))}
             </div>
@@ -340,59 +559,74 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'leaderboard' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="flex items-center gap-3 mb-6">
-              <Trophy className="w-8 h-8 text-yellow-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Global Leaderboard</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-3 rounded-xl">
+                <Trophy className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Global Leaderboard</h2>
+                <p className="text-slate-600">Top performing students</p>
+              </div>
             </div>
 
             <div className="space-y-4">
               {getLeaderboardUsers().map((user, index) => {
-                const position = user.ranking?.leaderboard_position || index + 1;
+                const position = user.ranking?.overall_position || index + 1;
                 const isTop3 = position <= 3;
-                const medalColor = position === 1 ? 'text-yellow-500' : position === 2 ? 'text-gray-400' : 'text-orange-500';
+                const medalColor = position === 1 ? 'text-yellow-500' : position === 2 ? 'text-slate-400' : 'text-orange-500';
+                const bgGradient = position === 1
+                  ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-300'
+                  : position === 2
+                  ? 'bg-gradient-to-r from-slate-50 to-gray-50 border-slate-300'
+                  : position === 3
+                  ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300'
+                  : 'bg-slate-50 border-slate-200';
 
                 return (
                   <div
                     key={user.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
-                      isTop3
-                        ? position === 1
-                          ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300'
-                          : position === 2
-                          ? 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300'
-                          : 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
+                    className={`flex items-center gap-6 p-6 rounded-xl border-2 transition-all hover:shadow-lg ${bgGradient}`}
                   >
-                    <div className="flex-shrink-0 w-12 text-center">
+                    <div className="flex-shrink-0 w-16 text-center">
                       {isTop3 ? (
-                        <Medal className={`w-8 h-8 mx-auto ${medalColor}`} />
+                        <Medal className={`w-12 h-12 mx-auto ${medalColor}`} />
                       ) : (
-                        <span className="text-2xl font-bold text-gray-500">#{position}</span>
+                        <span className="text-3xl font-bold text-slate-500">#{position}</span>
                       )}
                     </div>
 
                     <div className="flex-1">
-                      <div className="font-bold text-lg text-gray-900">{user.full_name}</div>
-                      <div className="text-sm text-gray-600">{user.email}</div>
+                      <div className="font-bold text-xl text-slate-900">{user.full_name}</div>
+                      <div className="text-sm text-slate-600">{user.email}</div>
                     </div>
 
                     {user.ranking && (
                       <>
-                        <div className="text-center px-4">
-                          <div className="text-xs text-gray-600">Rank</div>
-                          <div className="text-xl font-bold">{user.ranking.rank_level}</div>
+                        <div className="text-center px-6">
+                          <div className="text-xs text-slate-600 mb-1 font-medium">Rank</div>
+                          {getRankBadge(user.ranking.rank_grade)}
                         </div>
 
-                        <div className="text-center px-4">
-                          <div className="text-xs text-gray-600">Score</div>
-                          <div className="text-xl font-bold text-purple-600">{user.ranking.total_score}</div>
+                        <div className="text-center px-6">
+                          <div className="text-xs text-slate-600 mb-1 font-medium">Points</div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            {user.ranking.total_points}
+                          </div>
                         </div>
 
-                        <div className="text-center px-4">
-                          <div className="text-xs text-gray-600">WPM</div>
-                          <div className="text-xl font-bold text-blue-600">{Math.round(user.ranking.average_wpm)}</div>
+                        <div className="text-center px-6">
+                          <div className="text-xs text-slate-600 mb-1 font-medium">WPM</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {Math.round(user.ranking.average_wpm)}
+                          </div>
+                        </div>
+
+                        <div className="text-center px-6">
+                          <div className="text-xs text-slate-600 mb-1 font-medium">Accuracy</div>
+                          <div className="text-2xl font-bold text-emerald-600">
+                            {Math.round(user.ranking.average_accuracy)}%
+                          </div>
                         </div>
                       </>
                     )}
@@ -401,8 +635,10 @@ export const AdminDashboard: React.FC = () => {
               })}
 
               {getLeaderboardUsers().length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  No users have completed lessons yet.
+                <div className="text-center py-16 text-slate-500">
+                  <Trophy className="w-20 h-20 mx-auto mb-4 text-slate-300" />
+                  <p className="text-lg font-medium">No users have completed lessons yet.</p>
+                  <p className="text-sm mt-2">The leaderboard will populate as students complete lessons.</p>
                 </div>
               )}
             </div>
