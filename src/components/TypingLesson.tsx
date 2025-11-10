@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Clock, Target, Volume2 } from 'lucide-react';
+import VirtualKeyboard from './VirtualKeyboard';
+import { useTheme } from '../hooks/useTheme';
 
 interface TypingLessonProps {
   classData: Class;
@@ -11,13 +13,16 @@ interface TypingLessonProps {
 
 export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplete, onBack }) => {
   const { profile } = useAuth();
+  const { theme } = useTheme(profile?.id);
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
+  const [errors, setErrors] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
+  const [lastKey, setLastKey] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,8 +44,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const speakText = () => {
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(classData.content);
+      const healthcareText = `Medical terminology practice: ${classData.content}`;
+      const utterance = new SpeechSynthesisUtterance(healthcareText);
       utterance.rate = 0.8;
+      utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -53,13 +60,19 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     const calculatedWpm = Math.round(wordsTyped / timeInMinutes);
 
     let correctChars = 0;
+    let errorCount = 0;
     for (let i = 0; i < Math.min(userInput.length, classData.content.length); i++) {
-      if (userInput[i] === classData.content[i]) correctChars++;
+      if (userInput[i] === classData.content[i]) {
+        correctChars++;
+      } else {
+        errorCount++;
+      }
     }
     const calculatedAccuracy = Math.round((correctChars / classData.content.length) * 100);
 
     setWpm(calculatedWpm);
     setAccuracy(calculatedAccuracy);
+    setErrors(errorCount);
     setFinished(true);
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -72,6 +85,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     if (value.length >= classData.content.length) {
       calculateResults();
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    setLastKey(e.key);
   };
 
   const saveProgress = async () => {
@@ -107,6 +124,16 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
         if (error) throw error;
       }
+
+      await supabase.from('activity_logs').insert({
+        user_id: profile?.id,
+        activity_type: 'lesson',
+        duration_seconds: timeSpent,
+        wpm,
+        accuracy,
+        errors,
+        text_content: classData.content
+      });
 
       onComplete();
     } catch (error) {
@@ -258,6 +285,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           ref={inputRef}
           value={userInput}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           className="w-full px-6 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg resize-none"
           rows={8}
           placeholder="Start typing here..."
@@ -272,6 +300,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           >
             Finish Early
           </button>
+        </div>
+
+        <div className="mt-6">
+          <VirtualKeyboard pressedKey={lastKey} theme={theme} />
         </div>
       </div>
     </div>

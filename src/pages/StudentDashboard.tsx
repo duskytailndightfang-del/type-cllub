@@ -4,6 +4,8 @@ import { supabase, Class, Progress } from '../lib/supabase';
 import { LogOut, Trophy, Clock, Target } from 'lucide-react';
 import { InitialAssessment } from '../components/InitialAssessment';
 import { TypingLesson } from '../components/TypingLesson';
+import Leaderboard from '../components/Leaderboard';
+import { useTheme } from '../hooks/useTheme';
 
 export const StudentDashboard: React.FC = () => {
   const { signOut, profile } = useAuth();
@@ -12,6 +14,8 @@ export const StudentDashboard: React.FC = () => {
   const [progress, setProgress] = useState<Progress[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { theme, themeConfig } = useTheme(profile?.id);
 
   useEffect(() => {
     checkAssessmentStatus();
@@ -137,106 +141,129 @@ export const StudentDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+    <div className={`min-h-screen ${themeConfig.background}`}>
+      <nav className={`${themeConfig.card} shadow-lg border-b-2`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
-              <p className="text-sm text-gray-600">Welcome back, {profile?.full_name}</p>
+              <h1 className={`text-2xl font-bold ${themeConfig.text}`}>Student Dashboard</h1>
+              <p className={`text-sm ${themeConfig.accent}`}>Welcome back, {profile?.full_name}</p>
             </div>
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaderboard(!showLeaderboard)}
+                className={`flex items-center gap-2 px-4 py-2 ${themeConfig.secondary} text-white rounded-lg transition-colors`}
+              >
+                <Trophy className="w-4 h-4" />
+                Leaderboard
+              </button>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Total Hours</h3>
-              <Clock className="w-5 h-5 text-blue-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{getTotalHours()}h</p>
+        {showLeaderboard ? (
+          <div>
+            <button
+              onClick={() => setShowLeaderboard(false)}
+              className={`mb-6 px-4 py-2 ${themeConfig.secondary} text-white rounded-lg transition-colors`}
+            >
+              ← Back to Dashboard
+            </button>
+            <Leaderboard />
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Lessons Completed</h3>
-              <Trophy className="w-5 h-5 text-blue-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{getCompletedLessons()}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Average WPM</h3>
-              <Target className="w-5 h-5 text-blue-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{getAverageWPM()}</p>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Your Level</h2>
-            <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              {profile?.level?.charAt(0).toUpperCase() + profile?.level?.slice(1)}
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Available Lessons</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classes.map((cls) => {
-              const classProgress = progress.find(p => p.class_id === cls.id);
-              return (
-                <div
-                  key={cls.id}
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{cls.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{cls.content}</p>
-
-                  {classProgress && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-gray-600 mb-1">
-                        <span>Progress</span>
-                        <span>{classProgress.completed ? '100%' : '0%'}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: classProgress.completed ? '100%' : '0%' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setSelectedClass(cls)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    {classProgress?.completed ? 'Practice Again' : 'Start Lesson'}
-                  </button>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className={`${themeConfig.card} border-2 rounded-xl shadow-lg p-6`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`text-sm font-medium ${themeConfig.text}`}>Total Hours</h3>
+                  <Clock className={`w-5 h-5 ${themeConfig.accent}`} />
                 </div>
-              );
-            })}
-          </div>
+                <p className={`text-3xl font-bold ${themeConfig.text}`}>{getTotalHours()}h</p>
+              </div>
 
-          {classes.length === 0 && (
-            <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
-              No lessons available yet. Check back soon!
+              <div className={`${themeConfig.card} border-2 rounded-xl shadow-lg p-6`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`text-sm font-medium ${themeConfig.text}`}>Lessons Completed</h3>
+                  <Trophy className={`w-5 h-5 ${themeConfig.accent}`} />
+                </div>
+                <p className={`text-3xl font-bold ${themeConfig.text}`}>{getCompletedLessons()}</p>
+              </div>
+
+              <div className={`${themeConfig.card} border-2 rounded-xl shadow-lg p-6`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`text-sm font-medium ${themeConfig.text}`}>Average WPM</h3>
+                  <Target className={`w-5 h-5 ${themeConfig.accent}`} />
+                </div>
+                <p className={`text-3xl font-bold ${themeConfig.text}`}>{getAverageWPM()}</p>
+              </div>
             </div>
-          )}
-        </div>
+
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className={`text-xl font-bold ${themeConfig.text}`}>Your Level</h2>
+                <span className={`px-4 py-2 ${themeConfig.primary} text-white rounded-full text-sm font-medium shadow-lg`}>
+                  {profile?.level?.charAt(0).toUpperCase() + profile?.level?.slice(1)}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className={`text-xl font-bold ${themeConfig.text} mb-4`}>Available Lessons</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {classes.map((cls) => {
+                  const classProgress = progress.find(p => p.class_id === cls.id);
+                  return (
+                    <div
+                      key={cls.id}
+                      className={`${themeConfig.card} border-2 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all hover:scale-105`}
+                    >
+                      <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2`}>{cls.title}</h3>
+                      <p className="text-sm text-slate-400 mb-4 line-clamp-2">{cls.content}</p>
+
+                      {classProgress && (
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Progress</span>
+                            <span>{classProgress.completed ? '100%' : '0%'}</span>
+                          </div>
+                          <div className="w-full bg-slate-700 rounded-full h-2">
+                            <div
+                              className={`${themeConfig.primary} h-2 rounded-full`}
+                              style={{ width: classProgress.completed ? '100%' : '0%' }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setSelectedClass(cls)}
+                        className={`w-full px-4 py-2 ${themeConfig.primary} text-white rounded-lg transition-colors shadow-md`}
+                      >
+                        {classProgress?.completed ? 'Practice Again' : 'Start Lesson'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {classes.length === 0 && (
+                <div className={`${themeConfig.card} border-2 rounded-xl shadow p-12 text-center text-slate-400`}>
+                  No lessons available yet. Check back soon!
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus } from 'lucide-react';
+import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, TrendingUp, BarChart3 } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
+import UserAnalyticsDashboard from '../components/UserAnalyticsDashboard';
+import Leaderboard from '../components/Leaderboard';
 
 export const AdminDashboard: React.FC = () => {
   const { signOut, profile } = useAuth();
@@ -10,7 +12,8 @@ export const AdminDashboard: React.FC = () => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'students' | 'classes'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'classes' | 'analytics' | 'leaderboard'>('students');
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -109,9 +112,9 @@ export const AdminDashboard: React.FC = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 flex-wrap">
           <button
-            onClick={() => setActiveTab('students')}
+            onClick={() => { setActiveTab('students'); setSelectedStudentId(null); }}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
               activeTab === 'students'
                 ? 'bg-blue-600 text-white'
@@ -122,7 +125,7 @@ export const AdminDashboard: React.FC = () => {
             Students ({students.length})
           </button>
           <button
-            onClick={() => setActiveTab('classes')}
+            onClick={() => { setActiveTab('classes'); setSelectedStudentId(null); }}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
               activeTab === 'classes'
                 ? 'bg-blue-600 text-white'
@@ -131,6 +134,17 @@ export const AdminDashboard: React.FC = () => {
           >
             <BookOpen className="w-5 h-5" />
             Classes ({classes.length})
+          </button>
+          <button
+            onClick={() => { setActiveTab('leaderboard'); setSelectedStudentId(null); }}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+              activeTab === 'leaderboard'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            Leaderboard
           </button>
         </div>
 
@@ -174,6 +188,16 @@ export const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedStudentId(student.id);
+                              setActiveTab('analytics');
+                            }}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                            View
+                          </button>
                           {student.status !== 'approved' && (
                             <button
                               onClick={() => updateStudentStatus(student.id, 'approved')}
@@ -205,6 +229,22 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === 'analytics' && selectedStudentId && (
+          <div>
+            <button
+              onClick={() => setActiveTab('students')}
+              className="mb-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Students
+            </button>
+            <UserAnalyticsDashboard userId={selectedStudentId} />
+          </div>
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <Leaderboard />
         )}
 
         {activeTab === 'classes' && (
