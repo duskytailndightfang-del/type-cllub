@@ -68,33 +68,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'student') => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-      }
-    });
+    try {
+      const { data, error } = await supabase.rpc('custom_signup', {
+        user_email: email,
+        user_password: password,
+        user_full_name: fullName,
+        user_role: role
+      });
 
-    if (error) {
-      if (error.message.includes('email_address_invalid') || error.message.includes('Email address')) {
-        throw new Error('Email validation failed. Please ask your administrator to disable email confirmation in Supabase Dashboard: Authentication → Providers → Email → Turn OFF "Confirm email"');
+      if (error) throw error;
+
+      return data;
+    } catch (error: any) {
+      if (error.message?.includes('already exists')) {
+        throw new Error('An account with this email already exists');
       }
       throw error;
-    }
-
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          role,
-          status: role === 'admin' ? 'approved' : 'pending',
-        });
-
-      if (profileError) throw profileError;
     }
   };
 
