@@ -89,41 +89,57 @@ export const AdminDashboard: React.FC = () => {
 
   const fetchStats = async (): Promise<DashboardStats> => {
     try {
-      const { data: studentStats } = await supabase.rpc('execute_sql', {
-        query: `
-          SELECT
-            COUNT(*) as total_students,
-            COUNT(*) FILTER (WHERE status = 'approved') as approved_students,
-            COUNT(*) FILTER (WHERE status = 'pending') as pending_students
-          FROM profiles WHERE role = 'student'
-        `
-      });
+      // Fetch all students
+      const { data: allStudents, error: studentsError } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('role', 'student');
 
-      const { data: lessonCount } = await supabase.from('classes').select('id', { count: 'exact', head: true });
+      if (studentsError) throw studentsError;
 
-      const { data: completionStats } = await supabase.rpc('execute_sql', {
-        query: `
-          SELECT
-            COUNT(*) as total_completions,
-            COALESCE(SUM(score), 0) as total_points_awarded,
-            COALESCE(AVG(wpm), 0) as avg_wpm,
-            COALESCE(AVG(accuracy), 0) as avg_accuracy
-          FROM lesson_completions
-        `
-      });
+      // Calculate student stats
+      const totalStudents = allStudents?.length || 0;
+      const approvedStudents = allStudents?.filter(s => s.status === 'approved').length || 0;
+      const pendingStudents = allStudents?.filter(s => s.status === 'pending').length || 0;
+
+      // Fetch lesson count
+      const { count: lessonCount, error: lessonsError } = await supabase
+        .from('classes')
+        .select('*', { count: 'exact', head: true });
+
+      if (lessonsError) throw lessonsError;
+
+      // Fetch lesson completions with stats
+      const { data: completions, error: completionsError } = await supabase
+        .from('lesson_completions')
+        .select('score, wpm, accuracy');
+
+      if (completionsError) throw completionsError;
+
+      // Calculate completion stats
+      const totalCompletions = completions?.length || 0;
+      const totalPointsAwarded = completions?.reduce((sum, c) => sum + (c.score || 0), 0) || 0;
+      const avgWpm = completions?.length
+        ? Math.round(completions.reduce((sum, c) => sum + (c.wpm || 0), 0) / completions.length)
+        : 0;
+      const avgAccuracy = completions?.length
+        ? Math.round(completions.reduce((sum, c) => sum + (c.accuracy || 0), 0) / completions.length)
+        : 0;
 
       return {
-        totalStudents: studentStats?.[0]?.total_students || 0,
-        approvedStudents: studentStats?.[0]?.approved_students || 0,
-        pendingStudents: studentStats?.[0]?.pending_students || 0,
-        totalLessons: lessonCount?.count || 0,
-        totalCompletions: completionStats?.[0]?.total_completions || 0,
-        totalPointsAwarded: completionStats?.[0]?.total_points_awarded || 0,
-        avgWpm: Math.round(completionStats?.[0]?.avg_wpm || 0),
-        avgAccuracy: Math.round(completionStats?.[0]?.avg_accuracy || 0)
+        totalStudents,
+        approvedStudents,
+        pendingStudents,
+        totalLessons: lessonCount || 0,
+        totalCompletions,
+        totalPointsAwarded,
+        avgWpm,
+        avgAccuracy
       };
     } catch (error) {
       console.error('Error fetching stats:', error);
+
+      // Fallback to calculating from already loaded data
       return {
         totalStudents: users.length,
         approvedStudents: users.filter(u => u.status === 'approved').length,
