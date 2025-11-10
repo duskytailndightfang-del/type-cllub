@@ -8,19 +8,23 @@ export const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp, signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       if (isSignUp) {
         await signUp(email, password, fullName, 'student');
-        setError('');
-        alert('Account created! Please wait for admin approval.');
+        setSuccess('Account created successfully! Please wait for admin approval before logging in.');
+        setEmail('');
+        setPassword('');
+        setFullName('');
       } else {
         await signIn(email, password);
       }
@@ -105,6 +109,12 @@ export const Auth: React.FC = () => {
             </div>
           )}
 
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {success}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
@@ -119,6 +129,7 @@ export const Auth: React.FC = () => {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError('');
+              setSuccess('');
             }}
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >

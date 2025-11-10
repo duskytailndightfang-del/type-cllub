@@ -93,7 +93,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message?.includes('Email not confirmed')) {
+        throw new Error('Your account is pending admin approval. Please wait for approval before logging in.');
+      }
+      if (error.message?.includes('banned') || error.message?.includes('User banned')) {
+        throw new Error('Your account is pending admin approval. Please contact an administrator.');
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {

@@ -44,15 +44,21 @@ export const AdminDashboard: React.FC = () => {
 
   const updateStudentStatus = async (studentId: string, status: 'approved' | 'denied') => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', studentId);
-
-      if (error) throw error;
+      if (status === 'approved') {
+        const { error } = await supabase.rpc('approve_user', {
+          user_id_to_approve: studentId
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc('reject_user', {
+          user_id_to_reject: studentId
+        });
+        if (error) throw error;
+      }
       fetchData();
     } catch (error) {
       console.error('Error updating student status:', error);
+      alert('Failed to update student status. Please try again.');
     }
   };
 
