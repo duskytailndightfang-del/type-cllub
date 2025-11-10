@@ -1,16 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus } from 'lucide-react';
+import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, BarChart3, Clock, Target, TrendingUp, Medal } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
+
+interface UserRanking {
+  user_id: string;
+  total_score: number;
+  rank_level: string;
+  proficiency_level: string;
+  total_lessons_completed: number;
+  total_time_spent: number;
+  average_accuracy: number;
+  average_wpm: number;
+  leaderboard_position: number;
+  theme: string;
+}
+
+interface UserWithRanking extends Profile {
+  ranking?: UserRanking;
+}
 
 export const AdminDashboard: React.FC = () => {
   const { signOut, profile } = useAuth();
-  const [students, setStudents] = useState<Profile[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
+  const [users, setUsers] = useState<UserWithRanking[]>([]);
+  const [lessons, setLessons] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'students' | 'classes'>('students');
+  const [activeTab, setActiveTab] = useState<'users' | 'lessons' | 'leaderboard'>('users');
+  const [selectedUser, setSelectedUser] = useState<UserWithRanking | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -19,19 +37,30 @@ export const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: studentsData } = await supabase
+      const { data: usersData } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'student')
         .order('created_at', { ascending: false });
 
-      const { data: classesData } = await supabase
+      const { data: rankingsData } = await supabase
+        .from('user_rankings')
+        .select('*');
+
+      const { data: lessonsData } = await supabase
         .from('classes')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (studentsData) setStudents(studentsData);
-      if (classesData) setClasses(classesData);
+      if (usersData && rankingsData) {
+        const usersWithRankings = usersData.map(user => ({
+          ...user,
+          ranking: rankingsData.find((r: UserRanking) => r.user_id === user.id)
+        }));
+        setUsers(usersWithRankings);
+      }
+
+      if (lessonsData) setLessons(lessonsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -39,17 +68,17 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const updateStudentStatus = async (studentId: string, status: 'approved' | 'denied') => {
+  const updateUserStatus = async (userId: string, status: 'approved' | 'denied') => {
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', studentId);
+        .eq('id', userId);
 
       if (error) throw error;
       fetchData();
     } catch (error) {
-      console.error('Error updating student status:', error);
+      console.error('Error updating user status:', error);
     }
   };
 
@@ -80,26 +109,57 @@ export const AdminDashboard: React.FC = () => {
     );
   };
 
+  const getRankBadge = (rank: string) => {
+    const colors: Record<string, string> = {
+      'S': 'bg-yellow-100 text-yellow-800',
+      'A': 'bg-green-100 text-green-800',
+      'B': 'bg-blue-100 text-blue-800',
+      'C': 'bg-orange-100 text-orange-800',
+      'D': 'bg-gray-100 text-gray-800',
+    };
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors[rank] || colors['D']}`}>
+        Rank {rank}
+      </span>
+    );
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  const getLeaderboardUsers = () => {
+    return [...users]
+      .filter(u => u.ranking)
+      .sort((a, b) => (b.ranking?.leaderboard_position || 999) - (a.ranking?.leaderboard_position || 999))
+      .sort((a, b) => (a.ranking?.leaderboard_position || 999) - (b.ranking?.leaderboard_position || 999));
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
+        <div className="text-purple-600">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
+      <nav className="bg-white/80 backdrop-blur-sm shadow-lg border-b-2 border-purple-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-sm text-gray-600">Welcome, {profile?.full_name}</p>
+            <div className="flex items-center gap-4">
+              <img src="/og logo 512.png" alt="TypeMind AI" className="w-12 h-12" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">TypeMind AI - Admin Panel</h1>
+                <p className="text-sm text-gray-600">Welcome, {profile?.full_name}</p>
+              </div>
             </div>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -109,138 +169,254 @@ export const AdminDashboard: React.FC = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 flex-wrap">
           <button
-            onClick={() => setActiveTab('students')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-              activeTab === 'students'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'users'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-purple-50'
             }`}
           >
             <Users className="w-5 h-5" />
-            Students ({students.length})
+            Users ({users.length})
           </button>
           <button
-            onClick={() => setActiveTab('classes')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-              activeTab === 'classes'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+            onClick={() => setActiveTab('lessons')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'lessons'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-purple-50'
             }`}
           >
             <BookOpen className="w-5 h-5" />
-            Classes ({classes.length})
+            Lessons ({lessons.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('leaderboard')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'leaderboard'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-purple-50'
+            }`}
+          >
+            <Trophy className="w-5 h-5" />
+            Leaderboard
           </button>
         </div>
 
-        {activeTab === 'students' && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Level
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {students.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {student.full_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {student.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getLevelBadge(student.level)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(student.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex gap-2">
-                          {student.status !== 'approved' && (
-                            <button
-                              onClick={() => updateStudentStatus(student.id, 'approved')}
-                              className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                              Approve
-                            </button>
-                          )}
-                          {student.status !== 'denied' && (
-                            <button
-                              onClick={() => updateStudentStatus(student.id, 'denied')}
-                              className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                            >
-                              <XCircle className="w-4 h-4" />
-                              Deny
-                            </button>
-                          )}
-                        </div>
-                      </td>
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-purple-200">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-purple-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Level</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Rank</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {students.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  No students found
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-purple-50 transition-colors cursor-pointer" onClick={() => setSelectedUser(user)}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600">{user.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getLevelBadge(user.level)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {user.ranking ? getRankBadge(user.ranking.rank_level) : <span className="text-gray-400 text-sm">No rank</span>}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(user.status)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {user.status === 'pending' && (
+                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => updateUserStatus(user.id, 'approved')}
+                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                title="Approve"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => updateUserStatus(user.id, 'denied')}
+                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                title="Deny"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {selectedUser && selectedUser.ranking && (
+              <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <BarChart3 className="w-6 h-6 text-purple-600" />
+                    Analytics - {selectedUser.full_name}
+                  </h3>
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    Close
+                  </button>
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trophy className="w-5 h-5 text-purple-600" />
+                      <span className="text-sm text-gray-600">Total Score</span>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-600">{selectedUser.ranking.total_score}</div>
+                    <div className="text-xs text-gray-500 mt-1">Rank {selectedUser.ranking.rank_level}</div>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="w-5 h-5 text-blue-600" />
+                      <span className="text-sm text-gray-600">Average WPM</span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600">{Math.round(selectedUser.ranking.average_wpm)}</div>
+                    <div className="text-xs text-gray-500 mt-1">{selectedUser.ranking.average_accuracy.toFixed(1)}% Accuracy</div>
+                  </div>
+
+                  <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-5 h-5 text-green-600" />
+                      <span className="text-sm text-gray-600">Time Spent</span>
+                    </div>
+                    <div className="text-2xl font-bold text-green-600">{formatTime(selectedUser.ranking.total_time_spent)}</div>
+                    <div className="text-xs text-gray-500 mt-1">Total practice time</div>
+                  </div>
+
+                  <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-5 h-5 text-orange-600" />
+                      <span className="text-sm text-gray-600">Lessons Completed</span>
+                    </div>
+                    <div className="text-2xl font-bold text-orange-600">{selectedUser.ranking.total_lessons_completed}</div>
+                    <div className="text-xs text-gray-500 mt-1">{selectedUser.ranking.proficiency_level}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'lessons' && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Lesson Management</h2>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                Create Lesson
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lessons.map((lesson) => (
+                <div key={lesson.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">{lesson.title}</h3>
+                  <div className="flex gap-2 mb-3">
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                      {lesson.level}
+                    </span>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
+                      {lesson.module_type.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-sm line-clamp-3">{lesson.content}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {activeTab === 'classes' && (
-          <div>
-            <div className="mb-6">
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Create Class
-              </button>
+        {activeTab === 'leaderboard' && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="flex items-center gap-3 mb-6">
+              <Trophy className="w-8 h-8 text-yellow-600" />
+              <h2 className="text-2xl font-bold text-gray-900">Global Leaderboard</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {classes.map((cls) => (
-                <div key={cls.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{cls.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">{cls.content}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                      {cls.level}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {cls.module_type.replace('_', ' ')}
-                    </span>
+            <div className="space-y-4">
+              {getLeaderboardUsers().map((user, index) => {
+                const position = user.ranking?.leaderboard_position || index + 1;
+                const isTop3 = position <= 3;
+                const medalColor = position === 1 ? 'text-yellow-500' : position === 2 ? 'text-gray-400' : 'text-orange-500';
+
+                return (
+                  <div
+                    key={user.id}
+                    className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+                      isTop3
+                        ? position === 1
+                          ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300'
+                          : position === 2
+                          ? 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300'
+                          : 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex-shrink-0 w-12 text-center">
+                      {isTop3 ? (
+                        <Medal className={`w-8 h-8 mx-auto ${medalColor}`} />
+                      ) : (
+                        <span className="text-2xl font-bold text-gray-500">#{position}</span>
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="font-bold text-lg text-gray-900">{user.full_name}</div>
+                      <div className="text-sm text-gray-600">{user.email}</div>
+                    </div>
+
+                    {user.ranking && (
+                      <>
+                        <div className="text-center px-4">
+                          <div className="text-xs text-gray-600">Rank</div>
+                          <div className="text-xl font-bold">{user.ranking.rank_level}</div>
+                        </div>
+
+                        <div className="text-center px-4">
+                          <div className="text-xs text-gray-600">Score</div>
+                          <div className="text-xl font-bold text-purple-600">{user.ranking.total_score}</div>
+                        </div>
+
+                        <div className="text-center px-4">
+                          <div className="text-xs text-gray-600">WPM</div>
+                          <div className="text-xl font-bold text-blue-600">{Math.round(user.ranking.average_wpm)}</div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              ))}
-            </div>
+                );
+              })}
 
-            {classes.length === 0 && (
-              <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
-                No classes created yet. Click "Create Class" to get started.
-              </div>
-            )}
+              {getLeaderboardUsers().length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No users have completed lessons yet.
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
