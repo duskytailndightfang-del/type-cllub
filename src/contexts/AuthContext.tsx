@@ -71,9 +71,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('email_address_invalid') || error.message.includes('Email address')) {
+        throw new Error('Email validation failed. Please ask your administrator to disable email confirmation in Supabase Dashboard: Authentication → Providers → Email → Turn OFF "Confirm email"');
+      }
+      throw error;
+    }
 
     if (data.user) {
       const { error: profileError } = await supabase
