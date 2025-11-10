@@ -4,6 +4,7 @@ import { Keyboard, Mail, Lock, User } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isAdminSignUp, setIsAdminSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -17,10 +18,17 @@ export const Auth: React.FC = () => {
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        await signUp(email, password, fullName, 'student');
+      if (isSignUp || isAdminSignUp) {
+        const role = isAdminSignUp ? 'admin' : 'student';
+        await signUp(email, password, fullName, role);
         setError('');
-        alert('Account created! Please wait for admin approval.');
+        if (isAdminSignUp) {
+          alert('Admin account created successfully! You can now sign in.');
+          setIsAdminSignUp(false);
+          setIsSignUp(false);
+        } else {
+          alert('Account created! Please wait for admin approval.');
+        }
       } else {
         await signIn(email, password);
       }
@@ -39,11 +47,11 @@ export const Auth: React.FC = () => {
         </div>
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">TypeMaster AI</h1>
         <p className="text-center text-gray-600 mb-8">
-          {isSignUp ? 'Create your account' : 'Sign in to continue'}
+          {isAdminSignUp ? 'Create admin account' : isSignUp ? 'Create your account' : 'Sign in to continue'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
+          {(isSignUp || isAdminSignUp) && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -110,20 +118,52 @@ export const Auth: React.FC = () => {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            {loading ? 'Please wait...' : isAdminSignUp ? 'Create Admin Account' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-            }}
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-          >
-            {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-          </button>
+        <div className="mt-6 space-y-3">
+          <div className="text-center">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setIsAdminSignUp(false);
+                setError('');
+              }}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+            </button>
+          </div>
+
+          {!isSignUp && (
+            <div className="text-center pt-3 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setIsAdminSignUp(true);
+                  setIsSignUp(false);
+                  setError('');
+                }}
+                className="text-gray-600 hover:text-gray-800 text-xs font-medium"
+              >
+                Create admin account
+              </button>
+            </div>
+          )}
+
+          {isAdminSignUp && (
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setIsAdminSignUp(false);
+                  setError('');
+                }}
+                className="text-gray-600 hover:text-gray-800 text-xs"
+              >
+                Back to sign in
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
