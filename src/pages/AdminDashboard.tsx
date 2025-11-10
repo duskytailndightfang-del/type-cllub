@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile, Class } from '../lib/supabase';
-import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, BarChart3, Clock, Target, TrendingUp, Medal, Trash2 } from 'lucide-react';
+import { LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, Clock, Target, TrendingUp, Medal, Trash2 } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
+import { StudentAnalytics } from '../components/StudentAnalytics';
 
 interface UserRanking {
   user_id: string;
@@ -286,59 +287,12 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {selectedUser && selectedUser.ranking && (
-              <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                    <BarChart3 className="w-6 h-6 text-purple-600" />
-                    Analytics - {selectedUser.full_name}
-                  </h3>
-                  <button
-                    onClick={() => setSelectedUser(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Trophy className="w-5 h-5 text-purple-600" />
-                      <span className="text-sm text-gray-600">Total Score</span>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600">{selectedUser.ranking.total_score}</div>
-                    <div className="text-xs text-gray-500 mt-1">Rank {selectedUser.ranking.rank_level}</div>
-                  </div>
-
-                  <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm text-gray-600">Average WPM</span>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">{Math.round(selectedUser.ranking.average_wpm)}</div>
-                    <div className="text-xs text-gray-500 mt-1">{selectedUser.ranking.average_accuracy.toFixed(1)}% Accuracy</div>
-                  </div>
-
-                  <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-5 h-5 text-green-600" />
-                      <span className="text-sm text-gray-600">Time Spent</span>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">{formatTime(selectedUser.ranking.total_time_spent)}</div>
-                    <div className="text-xs text-gray-500 mt-1">Total practice time</div>
-                  </div>
-
-                  <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-orange-600" />
-                      <span className="text-sm text-gray-600">Lessons Completed</span>
-                    </div>
-                    <div className="text-2xl font-bold text-orange-600">{selectedUser.ranking.total_lessons_completed}</div>
-                    <div className="text-xs text-gray-500 mt-1">{selectedUser.ranking.proficiency_level}</div>
-                  </div>
-                </div>
-              </div>
+            {selectedUser && (
+              <StudentAnalytics
+                user={selectedUser}
+                ranking={selectedUser.ranking}
+                onClose={() => setSelectedUser(null)}
+              />
             )}
           </div>
         )}
