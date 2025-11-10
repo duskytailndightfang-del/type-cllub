@@ -48,22 +48,22 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
   };
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border-2 border-purple-200">
-      <div className="space-y-3">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-5 border border-purple-200">
+      <div className="space-y-2">
         {keyboardLayout.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex justify-center gap-2">
+          <div key={rowIndex} className="flex justify-center gap-1.5">
             {row.map((key) => (
               <div
                 key={key}
                 className={getKeyClasses(key)}
                 style={{
                   ...getKeyStyle(key),
-                  minWidth: key === 'SPACE' ? '400px' : '52px',
-                  minHeight: '52px',
+                  minWidth: key === 'SPACE' ? '320px' : '42px',
+                  minHeight: '42px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '16px'
+                  fontSize: '14px'
                 }}
               >
                 {key === 'SPACE' ? 'SPACE' : key}

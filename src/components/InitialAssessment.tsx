@@ -80,20 +80,6 @@ export const InitialAssessment: React.FC<InitialAssessmentProps> = ({ onComplete
         throw new Error('User profile not found');
       }
 
-      const { error: assessmentError } = await supabase
-        .from('assessments')
-        .insert({
-          student_id: profile.id,
-          wpm,
-          accuracy,
-          text_content: text,
-        });
-
-      if (assessmentError) {
-        console.error('Assessment insert error:', assessmentError);
-        throw assessmentError;
-      }
-
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
