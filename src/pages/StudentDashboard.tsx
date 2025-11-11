@@ -6,14 +6,14 @@ import { InitialAssessment } from '../components/InitialAssessment';
 import { TypingLesson } from '../components/TypingLesson';
 
 interface UserRanking {
-  total_score: number;
-  rank_level: string;
-  proficiency_level: string;
-  total_lessons_completed: number;
-  total_time_spent: number;
+  total_points: number;
+  rank_grade: string;
+  rank_category: string;
+  total_time_hours: number;
   average_accuracy: number;
   average_wpm: number;
-  leaderboard_position: number;
+  overall_position: number;
+  category_position: number;
   theme: string;
 }
 
@@ -79,10 +79,88 @@ export const StudentDashboard: React.FC = () => {
     if (data) setCertifications(data);
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
+  const formatTime = (hours: number) => {
+    if (!hours || isNaN(hours)) return '0h 0m';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.floor((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
+  };
+
+  const downloadCertificate = (cert: Certification) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 800;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
+    gradient.addColorStop(0, '#667eea');
+    gradient.addColorStop(1, '#764ba2');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 800);
+
+    // Border
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 20;
+    ctx.strokeRect(40, 40, 1120, 720);
+
+    // Inner border
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(60, 60, 1080, 680);
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('CERTIFICATE OF ACHIEVEMENT', 600, 150);
+
+    // Subtitle
+    ctx.font = '24px Arial';
+    ctx.fillText('TypeMind AI - Typing Excellence Program', 600, 200);
+
+    // Student name
+    ctx.font = 'italic 32px Arial';
+    ctx.fillText('This certifies that', 600, 280);
+    ctx.font = 'bold 48px Arial';
+    ctx.fillText(profile?.full_name || 'Student', 600, 350);
+
+    // Achievement text
+    ctx.font = 'italic 28px Arial';
+    ctx.fillText('has successfully achieved', 600, 410);
+
+    // Rank badge
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(450, 440, 300, 80);
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 42px Arial';
+    ctx.fillText(cert.rank_achieved, 600, 490);
+
+    // Stats
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '22px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Total Points: ${cert.points_at_issue}`, 300, 580);
+    ctx.fillText(`WPM: ${Math.round(cert.wpm_at_issue)}`, 300, 620);
+    ctx.fillText(`Accuracy: ${Math.round(cert.accuracy_at_issue)}%`, 700, 580);
+    ctx.fillText(`Date: ${new Date(cert.issued_at).toLocaleDateString()}`, 700, 620);
+
+    // Footer
+    ctx.textAlign = 'center';
+    ctx.font = 'italic 18px Arial';
+    ctx.fillText('For demonstrating exceptional typing proficiency and dedication', 600, 700);
+
+    // Download
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TypeMind-Certificate-${cert.rank_achieved}-${new Date(cert.issued_at).toISOString().split('T')[0]}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   const getRankColor = (rank: string) => {
@@ -213,15 +291,15 @@ export const StudentDashboard: React.FC = () => {
 
         {ranking && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className={`bg-white rounded-xl shadow-lg p-6 border-2 ${getRankColor(ranking.rank_level)}`}>
+            <div className={`bg-white rounded-xl shadow-lg p-6 border-2 ${getRankColor(ranking.rank_grade.split('-')[0])}`}>
               <div className="flex items-center gap-3 mb-2">
                 <Trophy className="w-8 h-8" />
                 <div>
                   <div className="text-sm text-gray-600">Rank</div>
-                  <div className="text-3xl font-bold">{ranking.rank_level}</div>
+                  <div className="text-3xl font-bold">{ranking.rank_grade}</div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">{ranking.proficiency_level}</div>
+              <div className="text-xs text-gray-500 mt-2">Position: #{ranking.overall_position}</div>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
@@ -229,10 +307,10 @@ export const StudentDashboard: React.FC = () => {
                 <Target className="w-8 h-8 text-purple-600" />
                 <div>
                   <div className="text-sm text-gray-600">Total Score</div>
-                  <div className="text-3xl font-bold text-purple-600">{ranking.total_score}</div>
+                  <div className="text-3xl font-bold text-purple-600">{ranking.total_points}</div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">Leaderboard: #{ranking.leaderboard_position}</div>
+              <div className="text-xs text-gray-500 mt-2">Category: {ranking.rank_category}</div>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-blue-200">
@@ -243,7 +321,7 @@ export const StudentDashboard: React.FC = () => {
                   <div className="text-3xl font-bold text-blue-600">{Math.round(ranking.average_wpm)}</div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">{ranking.average_accuracy.toFixed(1)}% Accuracy</div>
+              <div className="text-xs text-gray-500 mt-2">{Math.round(ranking.average_accuracy)}% Accuracy</div>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-green-200">
@@ -251,10 +329,67 @@ export const StudentDashboard: React.FC = () => {
                 <Clock className="w-8 h-8 text-green-600" />
                 <div>
                   <div className="text-sm text-gray-600">Time Spent</div>
-                  <div className="text-2xl font-bold text-green-600">{formatTime(ranking.total_time_spent)}</div>
+                  <div className="text-2xl font-bold text-green-600">{formatTime(ranking.total_time_hours)}</div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">{ranking.total_lessons_completed} Lessons</div>
+              <div className="text-xs text-gray-500 mt-2">Category Rank: #{ranking.category_position}</div>
+            </div>
+          </div>
+        )}
+
+        {ranking && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-blue-200">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="w-6 h-6 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-900">Rank Progression System</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'D-Rank' ? 'bg-gray-50 border-gray-400 ring-2 ring-gray-400' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="font-bold text-gray-900 mb-1">D-Rank</div>
+                <div className="text-xs text-gray-600">0-299 points</div>
+                <div className="text-xs text-gray-500 mt-1">Beginner</div>
+              </div>
+              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'C-Rank' ? 'bg-orange-50 border-orange-400 ring-2 ring-orange-400' : 'bg-orange-50 border-orange-200'}`}>
+                <div className="font-bold text-orange-900 mb-1">C-Rank</div>
+                <div className="text-xs text-orange-700">300-499 points</div>
+                <div className="text-xs text-orange-600 mt-1">Intermediate</div>
+              </div>
+              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'B-Rank' ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400' : 'bg-blue-50 border-blue-200'}`}>
+                <div className="font-bold text-blue-900 mb-1">B-Rank</div>
+                <div className="text-xs text-blue-700">500-699 points</div>
+                <div className="text-xs text-blue-600 mt-1">Advanced</div>
+              </div>
+              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'A-Rank' ? 'bg-green-50 border-green-400 ring-2 ring-green-400' : 'bg-green-50 border-green-200'}`}>
+                <div className="font-bold text-green-900 mb-1">A-Rank</div>
+                <div className="text-xs text-green-700">700-899 points</div>
+                <div className="text-xs text-green-600 mt-1">Expert</div>
+              </div>
+              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'S-Rank' ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-400' : 'bg-yellow-50 border-yellow-200'}`}>
+                <div className="font-bold text-yellow-900 mb-1">S-Rank</div>
+                <div className="text-xs text-yellow-700">900+ points</div>
+                <div className="text-xs text-yellow-600 mt-1">Master</div>
+              </div>
+            </div>
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-2">
+                <Award className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <span className="font-semibold">Next Milestone:</span>
+                  {ranking.rank_grade === 'S-Rank'
+                    ? ' You have achieved the highest rank! Keep practicing to maintain your skills.'
+                    : ` Earn ${
+                        ranking.rank_grade === 'D-Rank' ? 300 - ranking.total_points :
+                        ranking.rank_grade === 'C-Rank' ? 500 - ranking.total_points :
+                        ranking.rank_grade === 'B-Rank' ? 700 - ranking.total_points :
+                        900 - ranking.total_points
+                      } more points to reach ${
+                        ranking.rank_grade === 'D-Rank' ? 'C-Rank' :
+                        ranking.rank_grade === 'C-Rank' ? 'B-Rank' :
+                        ranking.rank_grade === 'B-Rank' ? 'A-Rank' : 'S-Rank'
+                      }. You'll receive a downloadable certificate upon reaching the next rank!`
+                  }
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -267,12 +402,20 @@ export const StudentDashboard: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {certifications.map((cert) => (
-                <div key={cert.id} className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-lg p-4 text-center">
-                  <Medal className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
-                  <div className="font-bold text-lg text-gray-900">Rank {cert.rank_achieved} Achieved</div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    {new Date(cert.issued_at).toLocaleDateString()}
+                <div key={cert.id} className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-lg p-4">
+                  <div className="text-center mb-3">
+                    <Medal className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
+                    <div className="font-bold text-lg text-gray-900">{cert.rank_achieved} Achieved</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {new Date(cert.issued_at).toLocaleDateString()}
+                    </div>
                   </div>
+                  <button
+                    onClick={() => downloadCertificate(cert)}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all text-sm font-semibold"
+                  >
+                    Download Certificate
+                  </button>
                 </div>
               ))}
             </div>
