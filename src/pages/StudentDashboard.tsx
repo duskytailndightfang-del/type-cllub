@@ -4,6 +4,7 @@ import { supabase, Class } from '../lib/supabase';
 import { LogOut, Trophy, Clock, Target, Award, TrendingUp, Zap, Medal } from 'lucide-react';
 import { InitialAssessment } from '../components/InitialAssessment';
 import { TypingLesson } from '../components/TypingLesson';
+import { RankProgressCard } from '../components/RankProgressCard';
 
 interface UserRanking {
   total_points: number;
@@ -338,60 +339,13 @@ export const StudentDashboard: React.FC = () => {
         )}
 
         {ranking && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-blue-200">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-900">Rank Progression System</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'D-Rank' ? 'bg-gray-50 border-gray-400 ring-2 ring-gray-400' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="font-bold text-gray-900 mb-1">D-Rank</div>
-                <div className="text-xs text-gray-600">0-299 points</div>
-                <div className="text-xs text-gray-500 mt-1">Beginner</div>
-              </div>
-              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'C-Rank' ? 'bg-orange-50 border-orange-400 ring-2 ring-orange-400' : 'bg-orange-50 border-orange-200'}`}>
-                <div className="font-bold text-orange-900 mb-1">C-Rank</div>
-                <div className="text-xs text-orange-700">300-499 points</div>
-                <div className="text-xs text-orange-600 mt-1">Intermediate</div>
-              </div>
-              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'B-Rank' ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400' : 'bg-blue-50 border-blue-200'}`}>
-                <div className="font-bold text-blue-900 mb-1">B-Rank</div>
-                <div className="text-xs text-blue-700">500-699 points</div>
-                <div className="text-xs text-blue-600 mt-1">Advanced</div>
-              </div>
-              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'A-Rank' ? 'bg-green-50 border-green-400 ring-2 ring-green-400' : 'bg-green-50 border-green-200'}`}>
-                <div className="font-bold text-green-900 mb-1">A-Rank</div>
-                <div className="text-xs text-green-700">700-899 points</div>
-                <div className="text-xs text-green-600 mt-1">Expert</div>
-              </div>
-              <div className={`p-4 rounded-lg border-2 ${ranking.rank_grade === 'S-Rank' ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-400' : 'bg-yellow-50 border-yellow-200'}`}>
-                <div className="font-bold text-yellow-900 mb-1">S-Rank</div>
-                <div className="text-xs text-yellow-700">900+ points</div>
-                <div className="text-xs text-yellow-600 mt-1">Master</div>
-              </div>
-            </div>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-start gap-2">
-                <Award className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900">
-                  <span className="font-semibold">Next Milestone:</span>
-                  {ranking.rank_grade === 'S-Rank'
-                    ? ' You have achieved the highest rank! Keep practicing to maintain your skills.'
-                    : ` Earn ${
-                        ranking.rank_grade === 'D-Rank' ? 300 - ranking.total_points :
-                        ranking.rank_grade === 'C-Rank' ? 500 - ranking.total_points :
-                        ranking.rank_grade === 'B-Rank' ? 700 - ranking.total_points :
-                        900 - ranking.total_points
-                      } more points to reach ${
-                        ranking.rank_grade === 'D-Rank' ? 'C-Rank' :
-                        ranking.rank_grade === 'C-Rank' ? 'B-Rank' :
-                        ranking.rank_grade === 'B-Rank' ? 'A-Rank' : 'S-Rank'
-                      }. You'll receive a downloadable certificate upon reaching the next rank!`
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
+          <RankProgressCard
+            currentPoints={ranking.total_points}
+            currentRank={ranking.rank_grade}
+            currentLevel={profile?.level || 'beginner'}
+            averageWpm={ranking.average_wpm}
+            averageAccuracy={ranking.average_accuracy}
+          />
         )}
 
         {certifications.length > 0 && (
