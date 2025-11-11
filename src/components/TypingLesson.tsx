@@ -291,10 +291,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4 pb-80">
       <LiveKeyboard activeKey={activeKey} />
 
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full mt-64">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
           <div className="flex items-center gap-4">
