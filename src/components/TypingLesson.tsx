@@ -81,9 +81,17 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   };
 
   const calculateScore = (wpm: number, accuracy: number): number => {
-    const wpmScore = Math.min(wpm * 2, 500);
-    const accuracyScore = accuracy * 5;
-    return Math.round(wpmScore + accuracyScore);
+    // Balanced scoring: ~30-50 points per lesson with good performance
+    // WPM contribution: 0-25 points (max at 100 WPM)
+    const wpmScore = Math.min(wpm * 0.25, 25);
+
+    // Accuracy contribution: 0-25 points (max at 100% accuracy)
+    const accuracyScore = accuracy * 0.25;
+
+    // Bonus points for excellent performance (both high WPM and accuracy)
+    const bonusMultiplier = (wpm >= 60 && accuracy >= 95) ? 1.2 : 1.0;
+
+    return Math.round((wpmScore + accuracyScore) * bonusMultiplier);
   };
 
   const calculateResults = () => {

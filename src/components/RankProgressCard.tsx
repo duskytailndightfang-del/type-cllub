@@ -20,11 +20,11 @@ interface RankTier {
 }
 
 const rankTiers: RankTier[] = [
-  { rank: 'D-Rank', level: 'Beginner', minPoints: 0, maxPoints: 299, color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-300' },
-  { rank: 'C-Rank', level: 'Intermediate', minPoints: 300, maxPoints: 499, color: 'text-orange-700', bgColor: 'bg-orange-50', borderColor: 'border-orange-300' },
-  { rank: 'B-Rank', level: 'Advanced', minPoints: 500, maxPoints: 699, color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-300' },
-  { rank: 'A-Rank', level: 'Advanced', minPoints: 700, maxPoints: 899, color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-300' },
-  { rank: 'S-Rank', level: 'Master', minPoints: 900, maxPoints: 9999, color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-amber-300' },
+  { rank: 'D-Rank', level: 'Beginner', minPoints: 0, maxPoints: 499, color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-300' },
+  { rank: 'C-Rank', level: 'Intermediate', minPoints: 500, maxPoints: 1499, color: 'text-orange-700', bgColor: 'bg-orange-50', borderColor: 'border-orange-300' },
+  { rank: 'B-Rank', level: 'Advanced', minPoints: 1500, maxPoints: 2999, color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-300' },
+  { rank: 'A-Rank', level: 'Expert', minPoints: 3000, maxPoints: 4999, color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-300' },
+  { rank: 'S-Rank', level: 'Master', minPoints: 5000, maxPoints: 99999, color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-amber-300' },
 ];
 
 export const RankProgressCard: React.FC<RankProgressCardProps> = ({
