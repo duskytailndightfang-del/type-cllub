@@ -74,30 +74,16 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
         {/* Keyboard with Hand Overlays */}
         <div className="flex-1 relative">
           <svg
-            className="absolute inset-0 pointer-events-none"
-            style={{ width: '100%', height: '350px', top: '-100px', left: '-20px' }}
-            viewBox="0 0 1100 350"
+            className="absolute pointer-events-none z-10"
+            style={{ width: '100%', height: '100%', top: '0', left: '0' }}
+            viewBox="0 0 950 300"
             preserveAspectRatio="xMidYMid meet"
           >
-            <defs>
-              <filter id="handShadow">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
-                <feOffset dx="2" dy="2" result="offsetblur"/>
-                <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.3"/>
-                </feComponentTransfer>
-                <feMerge>
-                  <feMergeNode/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* LEFT HAND */}
-            <g transform="translate(100, 80)">
-              {/* Left Pinky - curved down to A/Q/Z row */}
+            {/* LEFT HAND - positioned over keys */}
+            <g transform="translate(0, 0)">
+              {/* Left Pinky - over A/Q/Z keys */}
               <path
-                d="M 80,20 Q 75,15 70,25 C 68,40 65,60 63,80 Q 62,95 60,110 L 58,135 Q 56,150 62,155 Q 68,160 72,155 L 75,130 Q 78,105 80,85 Q 82,60 84,40 Q 85,25 80,20 Z"
+                d="M 85,-20 Q 80,-30 75,-15 C 72,5 70,30 68,55 L 66,85 Q 65,105 70,115 Q 75,125 82,118 L 87,85 Q 90,55 92,25 Q 93,0 85,-20 Z"
                 fill={activeFinger === 'left-pinky' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-pinky' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -105,9 +91,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Ring - curved down to S/W/X row */}
+              {/* Left Ring - over S/W/X keys */}
               <path
-                d="M 145,5 Q 140,0 135,10 C 132,30 129,55 126,80 Q 124,100 122,120 L 120,150 Q 118,170 124,176 Q 130,182 136,176 L 140,145 Q 144,115 147,90 Q 150,60 152,35 Q 153,15 145,5 Z"
+                d="M 155,-30 Q 150,-40 145,-20 C 142,10 139,40 137,70 L 135,105 Q 134,130 139,140 Q 145,150 152,143 L 157,105 Q 160,70 163,35 Q 165,0 155,-30 Z"
                 fill={activeFinger === 'left-ring' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-ring' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -115,9 +101,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Middle - longest finger, curved down to D/E/C row */}
+              {/* Left Middle - over D/E/C keys (longest) */}
               <path
-                d="M 215,-5 Q 210,-10 205,0 C 202,25 199,55 196,85 Q 194,110 192,135 L 190,165 Q 188,185 194,192 Q 200,199 206,192 L 210,160 Q 214,130 217,100 Q 220,65 223,35 Q 225,10 215,-5 Z"
+                d="M 225,-40 Q 220,-50 215,-25 C 212,10 209,50 207,85 L 205,125 Q 204,150 209,162 Q 215,174 222,167 L 227,125 Q 230,85 233,45 Q 235,5 225,-40 Z"
                 fill={activeFinger === 'left-middle' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-middle' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -125,9 +111,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Index - curved down to F/R/V row */}
+              {/* Left Index - over F/R/V keys */}
               <path
-                d="M 285,10 Q 280,5 275,15 C 272,35 269,60 266,90 Q 264,115 262,140 L 260,165 Q 258,182 264,189 Q 270,196 276,189 L 280,160 Q 284,130 287,100 Q 290,70 293,45 Q 295,20 285,10 Z"
+                d="M 295,-30 Q 290,-40 285,-20 C 282,10 279,45 277,80 L 275,115 Q 274,140 279,152 Q 285,164 292,157 L 297,115 Q 300,80 303,40 Q 305,0 295,-30 Z"
                 fill={activeFinger === 'left-index' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-index' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -135,9 +121,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Thumb - curves down to spacebar */}
+              {/* Left Thumb - over spacebar */}
               <path
-                d="M 340,140 Q 335,135 330,145 C 325,160 320,180 318,200 L 320,220 Q 323,235 333,238 L 350,240 Q 365,240 372,230 L 378,215 Q 380,195 375,180 Q 370,160 360,150 Q 350,142 340,140 Z"
+                d="M 360,155 Q 350,150 345,160 L 340,180 Q 338,195 345,200 L 370,205 Q 385,205 395,195 L 400,175 Q 402,155 390,150 Q 375,148 360,155 Z"
                 fill={activeFinger === 'thumb' ? '#22C55E' : '#94A3B8'}
                 stroke={activeFinger === 'thumb' ? '#16A34A' : '#64748B'}
                 strokeWidth="2"
@@ -146,11 +132,11 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
               />
             </g>
 
-            {/* RIGHT HAND */}
-            <g transform="translate(620, 80)">
-              {/* Right Index - curved down to J/U/N row */}
+            {/* RIGHT HAND - positioned over keys */}
+            <g transform="translate(0, 0)">
+              {/* Right Index - over J/U/N keys */}
               <path
-                d="M 75,10 Q 80,5 85,15 C 88,35 91,60 94,90 Q 96,115 98,140 L 100,165 Q 102,182 96,189 Q 90,196 84,189 L 80,160 Q 76,130 73,100 Q 70,70 67,45 Q 65,20 75,10 Z"
+                d="M 480,-30 Q 485,-40 490,-20 C 493,10 496,45 498,80 L 500,115 Q 501,140 496,152 Q 490,164 483,157 L 478,115 Q 475,80 472,40 Q 470,0 480,-30 Z"
                 fill={activeFinger === 'right-index' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-index' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -158,9 +144,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Middle - longest finger, curved down to K/I row */}
+              {/* Right Middle - over K/I keys (longest) */}
               <path
-                d="M 145,-5 Q 150,-10 155,0 C 158,25 161,55 164,85 Q 166,110 168,135 L 170,165 Q 172,185 166,192 Q 160,199 154,192 L 150,160 Q 146,130 143,100 Q 140,65 137,35 Q 135,10 145,-5 Z"
+                d="M 550,-40 Q 555,-50 560,-25 C 563,10 566,50 568,85 L 570,125 Q 571,150 566,162 Q 560,174 553,167 L 548,125 Q 545,85 542,45 Q 540,5 550,-40 Z"
                 fill={activeFinger === 'right-middle' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-middle' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -168,9 +154,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Ring - curved down to L/O row */}
+              {/* Right Ring - over L/O keys */}
               <path
-                d="M 215,5 Q 220,0 225,10 C 228,30 231,55 234,80 Q 236,100 238,120 L 240,150 Q 242,170 236,176 Q 230,182 224,176 L 220,145 Q 216,115 213,90 Q 210,60 208,35 Q 207,15 215,5 Z"
+                d="M 620,-30 Q 625,-40 630,-20 C 633,10 636,40 638,70 L 640,105 Q 641,130 636,140 Q 630,150 623,143 L 618,105 Q 615,70 612,35 Q 610,0 620,-30 Z"
                 fill={activeFinger === 'right-ring' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-ring' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -178,9 +164,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Pinky - curved down to semicolon/P row */}
+              {/* Right Pinky - over semicolon/P keys */}
               <path
-                d="M 280,20 Q 285,15 290,25 C 292,40 295,60 297,80 Q 298,95 300,110 L 302,135 Q 304,150 298,155 Q 292,160 288,155 L 285,130 Q 282,105 280,85 Q 278,60 276,40 Q 275,25 280,20 Z"
+                d="M 690,-20 Q 695,-30 700,-15 C 703,5 705,30 707,55 L 709,85 Q 710,105 705,115 Q 700,125 693,118 L 688,85 Q 685,55 683,25 Q 682,0 690,-20 Z"
                 fill={activeFinger === 'right-pinky' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-pinky' ? '#2563EB' : '#64748B'}
                 strokeWidth="2"
@@ -188,9 +174,9 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Thumb - curves down to spacebar */}
+              {/* Right Thumb - over spacebar */}
               <path
-                d="M 20,140 Q 25,135 30,145 C 35,160 40,180 42,200 L 40,220 Q 37,235 27,238 L 10,240 Q -5,240 -12,230 L -18,215 Q -20,195 -15,180 Q -10,160 0,150 Q 10,142 20,140 Z"
+                d="M 415,155 Q 425,150 430,160 L 435,180 Q 437,195 430,200 L 405,205 Q 390,205 380,195 L 375,175 Q 373,155 385,150 Q 400,148 415,155 Z"
                 fill={activeFinger === 'thumb' ? '#22C55E' : '#94A3B8'}
                 stroke={activeFinger === 'thumb' ? '#16A34A' : '#64748B'}
                 strokeWidth="2"
@@ -200,7 +186,7 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
             </g>
           </svg>
 
-          <div className="space-y-1 relative" style={{ paddingTop: '120px' }}>
+          <div className="space-y-1 relative">
             {keyboardLayout.map((row, rowIndex) => (
               <div key={rowIndex} className="flex justify-center gap-1">
                 {row.map((key) => (
@@ -222,7 +208,7 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
         </div>
 
         {/* Speed and Accuracy Display */}
-        <div className="flex flex-col gap-6" style={{ paddingTop: '120px' }}>
+        <div className="flex flex-col gap-6">
           <div className="text-center">
             <div className="text-gray-500 text-sm font-medium mb-2">Speed</div>
             <div className="text-5xl font-bold text-gray-700">
