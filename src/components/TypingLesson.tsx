@@ -30,6 +30,8 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const [score, setScore] = useState(0);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isFirstCompletion, setIsFirstCompletion] = useState(true);
+  const [currentWpm, setCurrentWpm] = useState(0);
+  const [currentAccuracy, setCurrentAccuracy] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { playTypingSound, soundEnabled, toggleSound } = useTypingSound();
@@ -40,6 +42,25 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (started && !finished && userInput.length > 0 && startTime) {
+      const timeElapsed = (Date.now() - startTime) / 1000 / 60;
+      const wordsTyped = userInput.length / 5;
+      const calculatedWpm = Math.round(wordsTyped / timeElapsed);
+
+      let correctChars = 0;
+      for (let i = 0; i < userInput.length; i++) {
+        if (userInput[i] === classData.content[i]) correctChars++;
+      }
+      const calculatedAccuracy = userInput.length > 0
+        ? Math.round((correctChars / userInput.length) * 100)
+        : 0;
+
+      setCurrentWpm(calculatedWpm);
+      setCurrentAccuracy(calculatedAccuracy);
+    }
+  }, [userInput, started, finished, startTime, classData.content]);
 
   const checkIfFirstCompletion = async () => {
     try {
@@ -292,7 +313,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4 pb-80">
-      <LiveKeyboard activeKey={activeKey} />
+      <LiveKeyboard activeKey={activeKey} currentWpm={currentWpm} currentAccuracy={currentAccuracy} />
 
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
         <div className="flex items-center justify-between mb-6">
