@@ -3,6 +3,7 @@ import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Volume2, VolumeX, Clock, Target, Award } from 'lucide-react';
 import { useTypingSound } from '../hooks/useTypingSound';
+import { VisualKeyboard } from './VisualKeyboard';
 
 interface TypingLessonProps {
   classData: Class;
@@ -160,15 +161,18 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     if (timerRef.current) clearInterval(timerRef.current);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    setActiveKey(e.key);
+    playTypingSound();
+
+    setTimeout(() => {
+      setActiveKey(null);
+    }, 200);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const prevLength = userInput.length;
-    const lastChar = value[value.length - 1];
-
-    if (lastChar) {
-      setActiveKey(lastChar);
-      playTypingSound();
-    }
 
     if (value.length > prevLength) {
       const newCharIndex = value.length - 1;
@@ -364,7 +368,9 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4 pb-64">
+      <VisualKeyboard activeKey={activeKey} />
+
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
@@ -422,6 +428,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           ref={inputRef}
           value={userInput}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           className="w-full px-6 py-4 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-2xl resize-none"
           rows={8}
           placeholder="Start typing here..."
