@@ -8,21 +8,26 @@ interface CreateClassModalProps {
   onSuccess: () => void;
 }
 
-const sampleTexts = {
+const healthcareTexts = {
   beginner: [
-    'The quick brown fox jumps over the lazy dog. Practice makes perfect. Keep your fingers on the home row.',
-    'Learning to type is fun and easy. Start slow and build your speed over time. Focus on accuracy first.',
-    'Hello world. Welcome to typing class. The keyboard is your friend. Practice daily for best results.',
+    'The patient needs vital signs checked. Blood pressure is measured in the exam room. Take temperature readings carefully.',
+    'Medical records must be kept secure. Patient privacy is very important. HIPAA rules protect health information.',
+    'Nurses wear scrubs to work. They check patient charts daily. Medicine is given at specific times.',
+    'The doctor orders lab tests. Results come back quickly. Technicians process blood samples carefully.',
+    'Hospital beds are cleaned often. Hand washing prevents infection. Sterile gloves must be worn.',
   ],
   intermediate: [
-    'Developing good typing habits requires consistent practice and attention to proper finger placement. Remember to take breaks.',
-    'Professional communication often depends on quick and accurate typing skills in the modern workplace.',
-    'The advancement of technology has made typing an essential skill for students and professionals alike.',
+    'Healthcare professionals must document patient assessments accurately in electronic health records. Proper documentation ensures continuity of care and legal compliance.',
+    'Medication administration requires careful verification using the five rights protocol. Nurses must check dosage, route, time, patient identity, and medication name before each administration.',
+    'Infection control protocols include proper hand hygiene, use of personal protective equipment, and environmental cleaning. These measures reduce hospital-acquired infections significantly.',
+    'Diagnostic imaging techniques such as X-rays, CT scans, and MRI provide valuable information for treatment planning. Radiologic technologists operate sophisticated medical equipment.',
+    'Patient education improves health outcomes and medication adherence. Healthcare providers explain treatment plans, potential side effects, and lifestyle modifications clearly.',
   ],
   advanced: [
-    'Mastering the art of touch typing involves developing muscle memory through repetitive practice, maintaining proper posture, and gradually increasing your speed while ensuring accuracy remains consistently high throughout extended typing sessions.',
-    'Contemporary digital communication necessitates proficiency in rapid text input, which can significantly enhance productivity and professional capabilities across diverse industries and technological platforms.',
-    'The integration of artificial intelligence and machine learning technologies has revolutionized how we interact with computers, yet fundamental typing skills remain crucial for effective human-computer interaction.',
+    'Comprehensive patient assessment involves systematic evaluation of physiological, psychological, and social factors affecting health outcomes. Healthcare providers utilize evidence-based clinical guidelines to formulate appropriate differential diagnoses and treatment protocols while considering individual patient circumstances, comorbidities, and contraindications.',
+    'Pharmacological interventions require thorough understanding of drug mechanisms, therapeutic indices, adverse reactions, and potential drug interactions. Clinical pharmacists collaborate with physicians to optimize medication regimens, monitor therapeutic efficacy, and prevent adverse drug events through comprehensive medication reconciliation processes.',
+    'Electronic health record systems facilitate interdisciplinary communication, clinical decision support, and quality improvement initiatives within healthcare organizations. Implementation of standardized terminology, interoperability standards, and data security measures ensures accurate information exchange while maintaining patient confidentiality.',
+    'Evidence-based practice integrates current research findings, clinical expertise, and patient preferences to deliver high-quality healthcare. Systematic literature reviews, meta-analyses, and randomized controlled trials provide the foundation for clinical practice guidelines that standardize care delivery.',
   ],
 };
 
@@ -37,66 +42,14 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
 
   const generateContent = async () => {
     setGenerating(true);
-    try {
-      const apiKey = import.meta.env.VITE_ABACUS_AI_API_KEY;
 
-      if (!apiKey || apiKey === 'your_abacus_ai_api_key_here') {
-        const texts = sampleTexts[level === 'all' ? 'intermediate' : level];
-        const randomText = texts[Math.floor(Math.random() * texts.length)];
-        setContent(randomText);
-        setGenerating(false);
-        return;
-      }
-
-      const lengthGuide = {
-        beginner: 'short sentence (10-15 words)',
-        intermediate: 'medium paragraph (30-50 words)',
-        advanced: 'long paragraph (60-100 words)',
-        all: 'medium paragraph (30-50 words)'
-      };
-
-      const prompt = `Generate a ${lengthGuide[level]} about healthcare terminology and medical procedures. The text should be suitable for typing practice and include proper medical vocabulary. Make it educational and professionally written.`;
-
-      const response = await fetch('https://api.abacus.ai/v0/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          model: 'gpt-4',
-          max_tokens: 200,
-          temperature: 0.7
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('API request failed');
-      }
-
-      const data = await response.json();
-      const generatedText = data.choices?.[0]?.message?.content?.trim() || '';
-
-      if (generatedText) {
-        setContent(generatedText);
-      } else {
-        throw new Error('No content generated');
-      }
-    } catch (error) {
-      console.error('Error generating content:', error);
-      const texts = sampleTexts[level === 'all' ? 'intermediate' : level];
+    setTimeout(() => {
+      const selectedLevel = level === 'all' ? 'intermediate' : level;
+      const texts = healthcareTexts[selectedLevel];
       const randomText = texts[Math.floor(Math.random() * texts.length)];
       setContent(randomText);
-      alert('Failed to generate content from API. Using sample text instead.');
-    } finally {
       setGenerating(false);
-    }
+    }, 500);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
