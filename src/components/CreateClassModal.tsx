@@ -33,16 +33,69 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced' | 'all'>('beginner');
   const [moduleType, setModuleType] = useState<'text' | 'audio_sentence' | 'audio_paragraph'>('text');
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
-  const generateContent = () => {
-    if (level === 'all') {
-      const allTexts = [...sampleTexts.beginner, ...sampleTexts.intermediate, ...sampleTexts.advanced];
-      const randomText = allTexts[Math.floor(Math.random() * allTexts.length)];
-      setContent(randomText);
-    } else {
-      const texts = sampleTexts[level];
+  const generateContent = async () => {
+    setGenerating(true);
+    try {
+      const apiKey = import.meta.env.VITE_ABACUS_AI_API_KEY;
+
+      if (!apiKey || apiKey === 'your_abacus_ai_api_key_here') {
+        const texts = sampleTexts[level === 'all' ? 'intermediate' : level];
+        const randomText = texts[Math.floor(Math.random() * texts.length)];
+        setContent(randomText);
+        setGenerating(false);
+        return;
+      }
+
+      const lengthGuide = {
+        beginner: 'short sentence (10-15 words)',
+        intermediate: 'medium paragraph (30-50 words)',
+        advanced: 'long paragraph (60-100 words)',
+        all: 'medium paragraph (30-50 words)'
+      };
+
+      const prompt = `Generate a ${lengthGuide[level]} about healthcare terminology and medical procedures. The text should be suitable for typing practice and include proper medical vocabulary. Make it educational and professionally written.`;
+
+      const response = await fetch('https://api.abacus.ai/v0/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          model: 'gpt-4',
+          max_tokens: 200,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
+      const generatedText = data.choices?.[0]?.message?.content?.trim() || '';
+
+      if (generatedText) {
+        setContent(generatedText);
+      } else {
+        throw new Error('No content generated');
+      }
+    } catch (error) {
+      console.error('Error generating content:', error);
+      const texts = sampleTexts[level === 'all' ? 'intermediate' : level];
       const randomText = texts[Math.floor(Math.random() * texts.length)];
       setContent(randomText);
+      alert('Failed to generate content from API. Using sample text instead.');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -136,10 +189,11 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               <button
                 type="button"
                 onClick={generateContent}
-                className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                disabled={generating}
+                className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4" />
-                Generate
+                <Sparkles className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+                {generating ? 'Generating...' : 'Generate'}
               </button>
             </div>
             <textarea

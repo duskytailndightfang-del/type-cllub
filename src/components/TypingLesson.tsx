@@ -103,15 +103,31 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const speakText = () => {
     if ('speechSynthesis' in window) {
-      const phrase = medicalPhrases[Math.floor(Math.random() * medicalPhrases.length)];
-      const utterance = new SpeechSynthesisUtterance(phrase);
+      window.speechSynthesis.cancel();
 
-      const avgWpm = profile?.level === 'beginner' ? 0.7 : profile?.level === 'intermediate' ? 0.9 : 1.0;
-      utterance.rate = avgWpm;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+      const words = classData.content.split(/\s+/);
+      let currentWordIndex = 0;
 
-      window.speechSynthesis.speak(utterance);
+      const speakNextWord = () => {
+        if (currentWordIndex < words.length) {
+          const word = words[currentWordIndex];
+          const utterance = new SpeechSynthesisUtterance(word);
+
+          const avgWpm = profile?.level === 'beginner' ? 0.6 : profile?.level === 'intermediate' ? 0.8 : 0.9;
+          utterance.rate = avgWpm;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+
+          utterance.onend = () => {
+            currentWordIndex++;
+            setTimeout(speakNextWord, 1000);
+          };
+
+          window.speechSynthesis.speak(utterance);
+        }
+      };
+
+      speakNextWord();
     }
   };
 
