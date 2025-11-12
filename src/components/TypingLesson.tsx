@@ -105,28 +105,12 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
 
-      const words = classData.content.split(/\s+/);
-      let currentWordIndex = 0;
+      const utterance = new SpeechSynthesisUtterance(classData.content);
+      utterance.rate = 1.2;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-      const speakNextWord = () => {
-        if (currentWordIndex < words.length) {
-          const word = words[currentWordIndex];
-          const utterance = new SpeechSynthesisUtterance(word);
-
-          utterance.rate = 1.5;
-          utterance.pitch = 1.0;
-          utterance.volume = 1.0;
-
-          utterance.onend = () => {
-            currentWordIndex++;
-            speakNextWord();
-          };
-
-          window.speechSynthesis.speak(utterance);
-        }
-      };
-
-      speakNextWord();
+      window.speechSynthesis.speak(utterance);
     }
   };
 
