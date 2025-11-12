@@ -368,86 +368,88 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleSound}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
-                soundEnabled
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-              }`}
-              title={soundEnabled ? 'Sound: ON' : 'Sound: OFF'}
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span className="text-xs font-medium">{soundEnabled ? 'ON' : 'OFF'}</span>
-            </button>
-            {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 pb-80">
+      <div className="p-4 max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
+            <div className="flex items-center gap-4">
               <button
-                onClick={speakText}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                onClick={toggleSound}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
+                  soundEnabled
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title={soundEnabled ? 'Sound: ON' : 'Sound: OFF'}
               >
-                <Volume2 className="w-4 h-4" />
-                Play
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                <span className="text-xs font-medium">{soundEnabled ? 'ON' : 'OFF'}</span>
               </button>
-            )}
+              {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
+                <button
+                  onClick={speakText}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  Play
+                </button>
+              )}
+            </div>
+          </div>
+
+          {classData.module_type === 'text' && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-2xl leading-relaxed">
+              {classData.content.split('').map((char, index) => (
+                <span key={index} className={getCharacterClass(index)}>
+                  {char}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-green-50 rounded-lg p-4 text-center">
+              <div className="text-sm text-gray-600 mb-1">Accuracy</div>
+              <div className="text-3xl font-bold text-green-600">{currentAccuracy}%</div>
+            </div>
+            <div className="bg-orange-50 rounded-lg p-4 text-center">
+              <div className="text-sm text-gray-600 mb-1">Duration</div>
+              <div className="text-3xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-4 text-center">
+              <div className="text-sm text-gray-600 mb-1">Speed</div>
+              <div className="text-3xl font-bold text-blue-600">{currentWpm} <span className="text-lg">wpm</span></div>
+            </div>
+          </div>
+
+          <textarea
+            ref={inputRef}
+            value={userInput}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-6 py-4 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-2xl resize-none"
+            rows={8}
+            placeholder="Start typing here..."
+            autoFocus
+          />
+
+          <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+            <div>Progress: {userInput.length} / {classData.content.length} characters</div>
+            <button
+              onClick={calculateResults}
+              className="px-4 py-2 text-white rounded transition-colors"
+              style={{ backgroundColor: '#531B93' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
+            >
+              Finish Early
+            </button>
           </div>
         </div>
-
-        {classData.module_type === 'text' && (
-          <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-2xl leading-relaxed">
-            {classData.content.split('').map((char, index) => (
-              <span key={index} className={getCharacterClass(index)}>
-                {char}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-green-50 rounded-lg p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Accuracy</div>
-            <div className="text-3xl font-bold text-green-600">{currentAccuracy}%</div>
-          </div>
-          <div className="bg-orange-50 rounded-lg p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Duration</div>
-            <div className="text-3xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Speed</div>
-            <div className="text-3xl font-bold text-blue-600">{currentWpm} <span className="text-lg">wpm</span></div>
-          </div>
-        </div>
-
-        <textarea
-          ref={inputRef}
-          value={userInput}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          className="w-full px-6 py-4 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-2xl resize-none"
-          rows={8}
-          placeholder="Start typing here..."
-          autoFocus
-        />
-
-        <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
-          <div>Progress: {userInput.length} / {classData.content.length} characters</div>
-          <button
-            onClick={calculateResults}
-            className="px-4 py-2 text-white rounded transition-colors"
-            style={{ backgroundColor: '#531B93' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531B93'}
-          >
-            Finish Early
-          </button>
-        </div>
-
-        <VisualKeyboard activeKey={activeKey} />
       </div>
+
+      <VisualKeyboard activeKey={activeKey} />
     </div>
   );
 };
