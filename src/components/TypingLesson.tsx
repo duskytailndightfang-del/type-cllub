@@ -368,7 +368,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 pb-80">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100" style={{ paddingBottom: '320px' }}>
       <div className="p-4 max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-4">
           <div className="flex items-center justify-between mb-6">
