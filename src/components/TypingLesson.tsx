@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Volume2, VolumeX, Clock, Target } from 'lucide-react';
-import { LiveKeyboard } from './LiveKeyboard';
+import { ArrowLeft, Volume2, VolumeX, Clock, Target, Award } from 'lucide-react';
 import { useTypingSound } from '../hooks/useTypingSound';
 
 interface TypingLessonProps {
@@ -32,6 +31,9 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const [isFirstCompletion, setIsFirstCompletion] = useState(true);
   const [currentWpm, setCurrentWpm] = useState(0);
   const [currentAccuracy, setCurrentAccuracy] = useState(0);
+  const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
+  const [incorrectKeystrokes, setIncorrectKeystrokes] = useState(0);
+  const [unfixedErrors, setUnfixedErrors] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { playTypingSound, soundEnabled, toggleSound } = useTypingSound();
@@ -44,23 +46,34 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }, []);
 
   useEffect(() => {
-    if (started && !finished && userInput.length > 0 && startTime) {
-      const timeElapsed = (Date.now() - startTime) / 1000 / 60;
-      const wordsTyped = userInput.length / 5;
-      const calculatedWpm = Math.round(wordsTyped / timeElapsed);
+    if (started && !finished && startTime) {
+      const totalKeystrokes = correctKeystrokes + incorrectKeystrokes;
 
-      let correctChars = 0;
-      for (let i = 0; i < userInput.length; i++) {
-        if (userInput[i] === classData.content[i]) correctChars++;
+      if (totalKeystrokes === 0) {
+        setCurrentWpm(0);
+        setCurrentAccuracy(0);
+        return;
       }
-      const calculatedAccuracy = userInput.length > 0
-        ? Math.round((correctChars / userInput.length) * 100)
-        : 0;
+
+      const elapsedMinutes = (Date.now() - startTime) / 60000;
+
+      if (elapsedMinutes === 0) {
+        setCurrentWpm(0);
+        setCurrentAccuracy(0);
+        return;
+      }
+
+      const charactersPerWord = 5;
+      const grossWpm = (totalKeystrokes / charactersPerWord) / elapsedMinutes;
+      const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
+      const calculatedWpm = Math.round(netWpm);
+
+      const calculatedAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100);
 
       setCurrentWpm(calculatedWpm);
       setCurrentAccuracy(calculatedAccuracy);
     }
-  }, [userInput, started, finished, startTime, classData.content]);
+  }, [correctKeystrokes, incorrectKeystrokes, unfixedErrors, started, finished, startTime]);
 
   const checkIfFirstCompletion = async () => {
     try {
@@ -118,15 +131,25 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const calculateResults = () => {
     if (!startTime) return;
 
-    const timeInMinutes = (Date.now() - startTime) / 60000;
-    const wordsTyped = userInput.trim().split(/\s+/).length;
-    const calculatedWpm = Math.round(wordsTyped / timeInMinutes);
+    const totalKeystrokes = correctKeystrokes + incorrectKeystrokes;
 
-    let correctChars = 0;
-    for (let i = 0; i < Math.min(userInput.length, classData.content.length); i++) {
-      if (userInput[i] === classData.content[i]) correctChars++;
+    if (totalKeystrokes === 0) {
+      setWpm(0);
+      setAccuracy(0);
+      setScore(0);
+      setFinished(true);
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
     }
-    const calculatedAccuracy = Math.round((correctChars / classData.content.length) * 100);
+
+    const elapsedMinutes = (Date.now() - startTime) / 60000;
+    const charactersPerWord = 5;
+
+    const grossWpm = (totalKeystrokes / charactersPerWord) / elapsedMinutes;
+    const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
+    const calculatedWpm = Math.round(netWpm);
+
+    const calculatedAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100);
     const calculatedScore = calculateScore(calculatedWpm, calculatedAccuracy);
 
     setWpm(calculatedWpm);
@@ -139,12 +162,41 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
+    const prevLength = userInput.length;
     const lastChar = value[value.length - 1];
 
     if (lastChar) {
       setActiveKey(lastChar);
       playTypingSound();
     }
+
+    if (value.length > prevLength) {
+      const newCharIndex = value.length - 1;
+      const isCorrect = value[newCharIndex] === classData.content[newCharIndex];
+
+      if (isCorrect) {
+        setCorrectKeystrokes(prev => prev + 1);
+      } else {
+        setIncorrectKeystrokes(prev => prev + 1);
+      }
+    } else if (value.length < prevLength) {
+      const deletedCharIndex = value.length;
+      const wasCorrect = userInput[deletedCharIndex] === classData.content[deletedCharIndex];
+
+      if (wasCorrect) {
+        setCorrectKeystrokes(prev => Math.max(0, prev - 1));
+      } else {
+        setIncorrectKeystrokes(prev => Math.max(0, prev - 1));
+      }
+    }
+
+    let errorCount = 0;
+    for (let i = 0; i < value.length; i++) {
+      if (value[i] !== classData.content[i]) {
+        errorCount++;
+      }
+    }
+    setUnfixedErrors(errorCount);
 
     setUserInput(value);
 
@@ -312,9 +364,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4 pb-80">
-      <LiveKeyboard activeKey={activeKey} currentWpm={currentWpm} currentAccuracy={currentAccuracy} />
-
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
@@ -352,6 +402,21 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             ))}
           </div>
         )}
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-green-50 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Accuracy</div>
+            <div className="text-3xl font-bold text-green-600">{currentAccuracy}%</div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Duration</div>
+            <div className="text-3xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-4 text-center">
+            <div className="text-sm text-gray-600 mb-1">Speed</div>
+            <div className="text-3xl font-bold text-blue-600">{currentWpm} <span className="text-lg">wpm</span></div>
+          </div>
+        </div>
 
         <textarea
           ref={inputRef}
