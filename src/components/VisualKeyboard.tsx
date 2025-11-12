@@ -8,7 +8,7 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey }) => 
   const getKeyClass = (key: string, altKey?: string) => {
     const isActive = activeKey === key || (altKey && activeKey === altKey);
     const baseClass = "px-4 py-3 bg-white border border-gray-300 rounded shadow-sm font-medium text-gray-700 hover:bg-gray-50 transition-all";
-    const activeClass = isActive ? "bg-blue-500 text-white border-blue-600 scale-95" : "";
+    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700 scale-95" : "";
     return `${baseClass} ${activeClass}`;
   };
 
@@ -16,12 +16,12 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey }) => 
     const keyList = Array.isArray(keys) ? keys : [keys];
     const isActive = keyList.some(k => activeKey === k);
     const baseClass = "px-6 py-3 bg-gray-100 border border-gray-300 rounded shadow-sm font-medium text-gray-600 text-sm hover:bg-gray-200 transition-all";
-    const activeClass = isActive ? "bg-blue-500 text-white border-blue-600 scale-95" : "";
+    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700 scale-95" : "";
     return `${baseClass} ${activeClass}`;
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-300 py-4 px-4 shadow-lg z-50">
+    <div className="fixed bottom-0 left-0 right-0 h-1/2 bg-white bg-opacity-30 backdrop-blur-sm border-t border-gray-300 py-8 px-4 shadow-lg z-50 flex items-center justify-center">
       <div className="max-w-5xl mx-auto">
         {/* Number Row */}
         <div className="flex justify-center gap-1 mb-1">
