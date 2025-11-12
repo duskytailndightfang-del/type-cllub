@@ -41,29 +41,29 @@ export const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <div className="flex items-center justify-center mb-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 animate-[fadeIn_0.5s_ease-out]">
+        <div className="flex items-center justify-center mb-6 animate-[bounceIn_0.6s_ease-out]">
           <img src="/og logo 512.png" alt="TypeMind AI" className="w-20 h-20" />
         </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">TypeMind AI</h1>
-        <p className="text-center text-gray-600 mb-8">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2 animate-[slideIn_0.4s_ease-out_0.2s_backwards]">TypeMind AI</h1>
+        <p className="text-center text-gray-600 mb-8 animate-[slideIn_0.4s_ease-out_0.3s_backwards]">
           {isAdminSignUp ? 'Create admin account' : isSignUp ? 'Create your account' : 'Sign in to continue'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {(isSignUp || isAdminSignUp) && (
             <>
-              <div>
+              <div className="animate-[slideIn_0.3s_ease-out]">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-200" />
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300 focus:scale-[1.02]"
                     placeholder="John Doe"
                     required
                   />
@@ -72,34 +72,34 @@ export const Auth: React.FC = () => {
             </>
           )}
 
-          <div>
+          <div className="animate-[slideIn_0.3s_ease-out_0.1s_backwards]">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-200" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300 focus:scale-[1.02]"
                 placeholder="you@example.com"
                 required
               />
             </div>
           </div>
 
-          <div>
+          <div className="animate-[slideIn_0.3s_ease-out_0.2s_backwards]">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-200" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300 focus:scale-[1.02]"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -116,7 +116,7 @@ export const Auth: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-white py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] animate-[slideIn_0.3s_ease-out_0.3s_backwards]"
             style={{ backgroundColor: loading ? '#9ca3af' : '#531B93' }}
             onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = '#42166f')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = '#531B93')}
@@ -125,7 +125,7 @@ export const Auth: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6">
           <div className="text-center">
             <button
               onClick={() => {
@@ -133,7 +133,7 @@ export const Auth: React.FC = () => {
                 setIsAdminSignUp(false);
                 setError('');
               }}
-              className="text-sm font-medium"
+              className="text-sm font-medium transition-all duration-200 hover:scale-105"
               style={{ color: '#531B93' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#42166f'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#531B93'}
@@ -141,35 +141,6 @@ export const Auth: React.FC = () => {
               {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
             </button>
           </div>
-
-          {!isSignUp && (
-            <div className="text-center pt-3 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setIsAdminSignUp(true);
-                  setIsSignUp(false);
-                  setError('');
-                }}
-                className="text-gray-600 hover:text-gray-800 text-xs font-medium"
-              >
-                Create admin account
-              </button>
-            </div>
-          )}
-
-          {isAdminSignUp && (
-            <div className="text-center">
-              <button
-                onClick={() => {
-                  setIsAdminSignUp(false);
-                  setError('');
-                }}
-                className="text-gray-600 hover:text-gray-800 text-xs"
-              >
-                Back to sign in
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
