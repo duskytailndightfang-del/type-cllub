@@ -7,21 +7,21 @@ interface VisualKeyboardProps {
 export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey }) => {
   const getKeyClass = (key: string, altKey?: string) => {
     const isActive = activeKey === key || (altKey && activeKey === altKey);
-    const baseClass = "px-4 py-3 bg-white border border-gray-300 rounded shadow-sm font-medium text-gray-700 hover:bg-gray-50 transition-all";
-    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700 scale-95" : "";
+    const baseClass = "px-3 py-2 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all";
+    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700" : "";
     return `${baseClass} ${activeClass}`;
   };
 
   const getSpecialKeyClass = (keys: string | string[]) => {
     const keyList = Array.isArray(keys) ? keys : [keys];
     const isActive = keyList.some(k => activeKey === k);
-    const baseClass = "px-6 py-3 bg-gray-100 border border-gray-300 rounded shadow-sm font-medium text-gray-600 text-sm hover:bg-gray-200 transition-all";
-    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700 scale-95" : "";
+    const baseClass = "px-4 py-2 bg-gray-50 border border-gray-300 rounded text-xs font-medium text-gray-600 hover:bg-gray-100 transition-all";
+    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700" : "";
     return `${baseClass} ${activeClass}`;
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-1/2 bg-white bg-opacity-30 backdrop-blur-sm border-t border-gray-300 py-8 px-4 shadow-lg z-50 flex items-center justify-center">
+    <div className="mt-6 bg-gray-50 bg-opacity-50 rounded-lg p-3">
       <div className="max-w-5xl mx-auto">
         {/* Number Row */}
         <div className="flex justify-center gap-1 mb-1">
@@ -159,8 +159,8 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey }) => 
         <div className="flex justify-center gap-1">
           <button className={getSpecialKeyClass(['Control', 'Ctrl'])}>Ctrl</button>
           <button className={getSpecialKeyClass(['Option', 'Alt'])}>Option</button>
-          <button className={getKeyClass(' ')} style={{ minWidth: '300px' }}>
-            {/* Spacebar */}
+          <button className={getKeyClass(' ')} style={{ minWidth: '250px' }}>
+            space
           </button>
           <button className={getSpecialKeyClass(['Option', 'Alt'])}>Option</button>
           <button className={getSpecialKeyClass(['Control', 'Ctrl'])}>Ctrl</button>
