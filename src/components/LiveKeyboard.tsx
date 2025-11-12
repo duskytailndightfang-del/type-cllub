@@ -66,218 +66,154 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
     return '48px';
   };
 
-  const getFingerOpacity = (finger: string) => {
-    if (activeFinger === finger) {
-      return '1';
-    }
-    return '0.2';
-  };
-
-  const getFingerScale = (finger: string) => {
-    if (activeFinger === finger) {
-      return 'scale(1.1)';
-    }
-    return 'scale(1)';
-  };
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-100 to-gray-50 border-t-2 border-gray-300 py-6 z-40 shadow-2xl">
       <div className="max-w-5xl mx-auto relative px-4">
         <svg
           className="absolute inset-0 pointer-events-none"
-          style={{ width: '100%', height: '300px', top: '-40px' }}
-          viewBox="0 0 1000 300"
+          style={{ width: '100%', height: '320px', top: '-80px' }}
+          viewBox="0 0 1200 320"
           preserveAspectRatio="xMidYMid meet"
         >
           <defs>
             <filter id="fingerGlow">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
               <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" />
             </filter>
           </defs>
 
-          <g transform="translate(140, 130)">
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('left-pinky'),
-                transform: getFingerScale('left-pinky'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 15 15 Q 12 8 10 15 L 8 50 Q 7 58 14 58 L 20 58 Q 26 58 25 50 L 23 15 Q 21 8 18 15 Z"
-                fill={activeFinger === 'left-pinky' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'left-pinky' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'left-pinky' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Left Hand - Pinky Finger (A, Q, Z, 1) */}
+          <path
+            d="M 200 60 Q 195 50 190 60 C 185 75 180 90 175 110 L 170 140 Q 165 160 170 165 L 175 170 Q 180 175 185 170 L 190 140 Q 195 120 200 100 Z"
+            fill={activeFinger === 'left-pinky' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'left-pinky' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'left-pinky' ? 1 : 0.25,
+              filter: activeFinger === 'left-pinky' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('left-ring'),
-                transform: getFingerScale('left-ring'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 43 3 Q 40 -5 38 3 L 33 58 Q 32 66 38 66 L 46 66 Q 52 66 51 58 L 48 3 Q 46 -5 43 3 Z"
-                fill={activeFinger === 'left-ring' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'left-ring' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'left-ring' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Left Hand - Ring Finger (S, W, X, 2) */}
+          <path
+            d="M 260 35 Q 255 25 250 35 C 245 55 240 75 235 100 L 230 135 Q 225 160 232 167 L 238 173 Q 245 180 252 173 L 257 135 Q 262 105 265 75 Z"
+            fill={activeFinger === 'left-ring' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'left-ring' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'left-ring' ? 1 : 0.25,
+              filter: activeFinger === 'left-ring' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('left-middle'),
-                transform: getFingerScale('left-middle'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 68 -2 Q 65 -10 63 -2 L 58 60 Q 57 68 63 68 L 71 68 Q 77 68 76 60 L 73 -2 Q 71 -10 68 -2 Z"
-                fill={activeFinger === 'left-middle' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'left-middle' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'left-middle' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Left Hand - Middle Finger (D, E, C, 3) */}
+          <path
+            d="M 325 20 Q 320 10 315 20 C 310 45 305 70 300 100 L 295 140 Q 290 165 297 172 L 303 178 Q 310 185 317 178 L 322 140 Q 327 105 330 70 Z"
+            fill={activeFinger === 'left-middle' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'left-middle' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'left-middle' ? 1 : 0.25,
+              filter: activeFinger === 'left-middle' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('left-index'),
-                transform: getFingerScale('left-index'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 93 5 Q 90 -2 88 5 L 83 58 Q 82 66 88 66 L 96 66 Q 102 66 101 58 L 98 5 Q 96 -2 93 5 Z"
-                fill={activeFinger === 'left-index' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'left-index' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'left-index' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Left Hand - Index Finger (F, R, V, 4, 5, G, T, B) */}
+          <path
+            d="M 390 30 Q 385 20 380 30 C 375 55 370 80 365 110 L 360 145 Q 355 170 362 177 L 368 183 Q 375 190 382 183 L 387 145 Q 392 110 395 75 Z"
+            fill={activeFinger === 'left-index' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'left-index' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'left-index' ? 1 : 0.25,
+              filter: activeFinger === 'left-index' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('thumb'),
-                transform: getFingerScale('thumb'),
-                transformOrigin: 'center'
-              }}
-            >
-              <ellipse
-                cx="145"
-                cy="95"
-                rx="38"
-                ry="20"
-                fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
-                stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'thumb' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
-          </g>
+          {/* Left Hand - Thumb (Space) */}
+          <path
+            d="M 480 160 Q 470 155 465 165 C 460 175 455 185 455 200 L 460 215 Q 465 225 475 225 L 490 225 Q 500 225 505 215 L 510 200 Q 510 180 500 170 Z"
+            fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
+            stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'thumb' ? 1 : 0.25,
+              filter: activeFinger === 'thumb' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-          <g transform="translate(570, 130)">
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('right-index'),
-                transform: getFingerScale('right-index'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 17 5 Q 19 -2 22 5 L 27 58 Q 28 66 22 66 L 14 66 Q 8 66 9 58 L 12 5 Q 14 -2 17 5 Z"
-                fill={activeFinger === 'right-index' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'right-index' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'right-index' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Right Hand - Thumb (Space) */}
+          <path
+            d="M 690 160 Q 700 155 705 165 C 710 175 715 185 715 200 L 710 215 Q 705 225 695 225 L 680 225 Q 670 225 665 215 L 660 200 Q 660 180 670 170 Z"
+            fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
+            stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'thumb' ? 1 : 0.25,
+              filter: activeFinger === 'thumb' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('right-middle'),
-                transform: getFingerScale('right-middle'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 42 -2 Q 45 -10 47 -2 L 52 60 Q 53 68 47 68 L 39 68 Q 33 68 34 60 L 37 -2 Q 39 -10 42 -2 Z"
-                fill={activeFinger === 'right-middle' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'right-middle' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'right-middle' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Right Hand - Index Finger (J, U, N, 6, 7, H, Y, M) */}
+          <path
+            d="M 780 30 Q 785 20 790 30 C 795 55 800 80 805 110 L 810 145 Q 815 170 808 177 L 802 183 Q 795 190 788 183 L 783 145 Q 778 110 775 75 Z"
+            fill={activeFinger === 'right-index' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'right-index' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'right-index' ? 1 : 0.25,
+              filter: activeFinger === 'right-index' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('right-ring'),
-                transform: getFingerScale('right-ring'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 67 3 Q 70 -5 72 3 L 77 58 Q 78 66 72 66 L 64 66 Q 58 66 59 58 L 62 3 Q 64 -5 67 3 Z"
-                fill={activeFinger === 'right-ring' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'right-ring' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'right-ring' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Right Hand - Middle Finger (K, I, comma, 8) */}
+          <path
+            d="M 845 20 Q 850 10 855 20 C 860 45 865 70 870 100 L 875 140 Q 880 165 873 172 L 867 178 Q 860 185 853 178 L 848 140 Q 843 105 840 70 Z"
+            fill={activeFinger === 'right-middle' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'right-middle' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'right-middle' ? 1 : 0.25,
+              filter: activeFinger === 'right-middle' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('right-pinky'),
-                transform: getFingerScale('right-pinky'),
-                transformOrigin: 'center'
-              }}
-            >
-              <path
-                d="M 95 15 Q 98 8 100 15 L 102 50 Q 103 58 96 58 L 90 58 Q 84 58 85 50 L 87 15 Q 89 8 92 15 Z"
-                fill={activeFinger === 'right-pinky' ? '#3B82F6' : '#9CA3AF'}
-                stroke={activeFinger === 'right-pinky' ? '#2563EB' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'right-pinky' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
+          {/* Right Hand - Ring Finger (L, O, period, 9) */}
+          <path
+            d="M 910 35 Q 915 25 920 35 C 925 55 930 75 935 100 L 940 135 Q 945 160 938 167 L 932 173 Q 925 180 918 173 L 913 135 Q 908 105 905 75 Z"
+            fill={activeFinger === 'right-ring' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'right-ring' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'right-ring' ? 1 : 0.25,
+              filter: activeFinger === 'right-ring' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
 
-            <g
-              className="transition-all duration-150 ease-out"
-              style={{
-                opacity: getFingerOpacity('thumb'),
-                transform: getFingerScale('thumb'),
-                transformOrigin: 'center'
-              }}
-            >
-              <ellipse
-                cx="-35"
-                cy="95"
-                rx="38"
-                ry="20"
-                fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
-                stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
-                strokeWidth="2"
-                filter={activeFinger === 'thumb' ? 'url(#fingerGlow)' : ''}
-              />
-            </g>
-          </g>
+          {/* Right Hand - Pinky Finger (semicolon, P, slash, 0, -, =) */}
+          <path
+            d="M 970 60 Q 975 50 980 60 C 985 75 990 90 995 110 L 1000 140 Q 1005 160 1000 165 L 995 170 Q 990 175 985 170 L 980 140 Q 975 120 970 100 Z"
+            fill={activeFinger === 'right-pinky' ? '#4A90E2' : '#9CA3AF'}
+            stroke={activeFinger === 'right-pinky' ? '#2563EB' : '#6B7280'}
+            strokeWidth="2.5"
+            className="transition-all duration-150 ease-out"
+            style={{
+              opacity: activeFinger === 'right-pinky' ? 1 : 0.25,
+              filter: activeFinger === 'right-pinky' ? 'url(#fingerGlow)' : 'none'
+            }}
+          />
         </svg>
 
-        <div className="space-y-1 relative" style={{ paddingTop: '80px' }}>
+        <div className="space-y-1 relative" style={{ paddingTop: '110px' }}>
           {keyboardLayout.map((row, rowIndex) => (
             <div key={rowIndex} className="flex justify-center gap-1">
               {row.map((key) => (
