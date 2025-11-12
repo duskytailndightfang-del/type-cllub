@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Clock, Target, Volume2, Award } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Clock, Target } from 'lucide-react';
 import { LiveKeyboard } from './LiveKeyboard';
 import { useTypingSound } from '../hooks/useTypingSound';
 
@@ -32,7 +32,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const [isFirstCompletion, setIsFirstCompletion] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const { playTypingSound } = useTypingSound();
+  const { playTypingSound, soundEnabled, toggleSound } = useTypingSound();
 
   useEffect(() => {
     checkIfFirstCompletion();
@@ -298,6 +298,18 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
           <div className="flex items-center gap-4">
+            <button
+              onClick={toggleSound}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
+                soundEnabled
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+              }`}
+              title={soundEnabled ? 'Sound: ON' : 'Sound: OFF'}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              <span className="text-xs font-medium">{soundEnabled ? 'ON' : 'OFF'}</span>
+            </button>
             {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
               <button
                 onClick={speakText}
@@ -307,10 +319,6 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
                 Play
               </button>
             )}
-            <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
-              <Clock className="w-5 h-5" />
-              <span className="font-mono font-medium">{formatTime(timeSpent)}</span>
-            </div>
           </div>
         </div>
 

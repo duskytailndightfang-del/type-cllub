@@ -32,7 +32,7 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
     if (activeKey) {
       const upperKey = activeKey.toUpperCase();
       setHighlightedKey(upperKey);
-      setActiveFinger(fingerKeyMap[upperKey] || null);
+      setActiveFinger(fingerKeyMap[upperKey] || fingerKeyMap[activeKey] || null);
 
       const timer = setTimeout(() => {
         setHighlightedKey(null);
@@ -52,7 +52,7 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
     if (isActive) {
       return `${baseClasses} bg-blue-500 text-white border-blue-600 shadow-lg scale-105`;
     }
-    return `${baseClasses} bg-white text-gray-700 border-gray-300 shadow-sm`;
+    return `${baseClasses} bg-white text-gray-700 border-gray-300 shadow-sm hover:bg-gray-50`;
   };
 
   const getKeyWidth = (key: string) => {
@@ -66,53 +66,218 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey }) => {
     return '48px';
   };
 
+  const getFingerOpacity = (finger: string) => {
+    if (activeFinger === finger) {
+      return '1';
+    }
+    return '0.2';
+  };
+
+  const getFingerScale = (finger: string) => {
+    if (activeFinger === finger) {
+      return 'scale(1.1)';
+    }
+    return 'scale(1)';
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t-2 border-gray-200 py-4 z-40">
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-100 to-gray-50 border-t-2 border-gray-300 py-6 z-40 shadow-2xl">
       <div className="max-w-5xl mx-auto relative px-4">
         <svg
           className="absolute inset-0 pointer-events-none"
-          style={{ width: '100%', height: '280px', top: '-20px' }}
-          viewBox="0 0 1000 280"
+          style={{ width: '100%', height: '300px', top: '-40px' }}
+          viewBox="0 0 1000 300"
           preserveAspectRatio="xMidYMid meet"
         >
-          <g transform="translate(120, 120)">
-            <g className={`transition-opacity duration-200 ${activeFinger === 'left-pinky' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 20 20 Q 15 10 10 20 L 8 50 Q 8 55 12 55 L 18 55 Q 22 55 22 50 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+          <defs>
+            <filter id="fingerGlow">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+              <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" />
+            </filter>
+          </defs>
+
+          <g transform="translate(140, 130)">
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('left-pinky'),
+                transform: getFingerScale('left-pinky'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 15 15 Q 12 8 10 15 L 8 50 Q 7 58 14 58 L 20 58 Q 26 58 25 50 L 23 15 Q 21 8 18 15 Z"
+                fill={activeFinger === 'left-pinky' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'left-pinky' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'left-pinky' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'left-ring' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 45 5 Q 42 -5 38 5 L 33 55 Q 33 60 37 60 L 43 60 Q 47 60 47 55 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('left-ring'),
+                transform: getFingerScale('left-ring'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 43 3 Q 40 -5 38 3 L 33 58 Q 32 66 38 66 L 46 66 Q 52 66 51 58 L 48 3 Q 46 -5 43 3 Z"
+                fill={activeFinger === 'left-ring' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'left-ring' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'left-ring' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'left-middle' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 70 0 Q 68 -8 64 0 L 58 58 Q 58 63 62 63 L 68 63 Q 72 63 72 58 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('left-middle'),
+                transform: getFingerScale('left-middle'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 68 -2 Q 65 -10 63 -2 L 58 60 Q 57 68 63 68 L 71 68 Q 77 68 76 60 L 73 -2 Q 71 -10 68 -2 Z"
+                fill={activeFinger === 'left-middle' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'left-middle' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'left-middle' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'left-index' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 95 8 Q 93 0 89 8 L 83 56 Q 83 61 87 61 L 93 61 Q 97 61 97 56 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('left-index'),
+                transform: getFingerScale('left-index'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 93 5 Q 90 -2 88 5 L 83 58 Q 82 66 88 66 L 96 66 Q 102 66 101 58 L 98 5 Q 96 -2 93 5 Z"
+                fill={activeFinger === 'left-index' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'left-index' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'left-index' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'thumb' ? 'opacity-100' : 'opacity-30'}`}>
-              <ellipse cx="140" cy="90" rx="35" ry="18" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('thumb'),
+                transform: getFingerScale('thumb'),
+                transformOrigin: 'center'
+              }}
+            >
+              <ellipse
+                cx="145"
+                cy="95"
+                rx="38"
+                ry="20"
+                fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
+                stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'thumb' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
           </g>
 
-          <g transform="translate(580, 120)">
-            <g className={`transition-opacity duration-200 ${activeFinger === 'right-index' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 20 8 Q 22 0 26 8 L 32 56 Q 32 61 28 61 L 22 61 Q 18 61 18 56 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+          <g transform="translate(570, 130)">
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('right-index'),
+                transform: getFingerScale('right-index'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 17 5 Q 19 -2 22 5 L 27 58 Q 28 66 22 66 L 14 66 Q 8 66 9 58 L 12 5 Q 14 -2 17 5 Z"
+                fill={activeFinger === 'right-index' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'right-index' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'right-index' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'right-middle' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 45 0 Q 47 -8 51 0 L 57 58 Q 57 63 53 63 L 47 63 Q 43 63 43 58 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('right-middle'),
+                transform: getFingerScale('right-middle'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 42 -2 Q 45 -10 47 -2 L 52 60 Q 53 68 47 68 L 39 68 Q 33 68 34 60 L 37 -2 Q 39 -10 42 -2 Z"
+                fill={activeFinger === 'right-middle' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'right-middle' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'right-middle' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'right-ring' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 70 5 Q 73 -5 77 5 L 82 55 Q 82 60 78 60 L 72 60 Q 68 60 68 55 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('right-ring'),
+                transform: getFingerScale('right-ring'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 67 3 Q 70 -5 72 3 L 77 58 Q 78 66 72 66 L 64 66 Q 58 66 59 58 L 62 3 Q 64 -5 67 3 Z"
+                fill={activeFinger === 'right-ring' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'right-ring' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'right-ring' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'right-pinky' ? 'opacity-100' : 'opacity-30'}`}>
-              <path d="M 95 20 Q 100 10 105 20 L 107 50 Q 107 55 103 55 L 97 55 Q 93 55 93 50 Z" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('right-pinky'),
+                transform: getFingerScale('right-pinky'),
+                transformOrigin: 'center'
+              }}
+            >
+              <path
+                d="M 95 15 Q 98 8 100 15 L 102 50 Q 103 58 96 58 L 90 58 Q 84 58 85 50 L 87 15 Q 89 8 92 15 Z"
+                fill={activeFinger === 'right-pinky' ? '#3B82F6' : '#9CA3AF'}
+                stroke={activeFinger === 'right-pinky' ? '#2563EB' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'right-pinky' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
-            <g className={`transition-opacity duration-200 ${activeFinger === 'thumb' ? 'opacity-100' : 'opacity-30'}`}>
-              <ellipse cx="-25" cy="90" rx="35" ry="18" fill="#4A90E2" opacity="0.3" stroke="#4A90E2" strokeWidth="1"/>
+
+            <g
+              className="transition-all duration-150 ease-out"
+              style={{
+                opacity: getFingerOpacity('thumb'),
+                transform: getFingerScale('thumb'),
+                transformOrigin: 'center'
+              }}
+            >
+              <ellipse
+                cx="-35"
+                cy="95"
+                rx="38"
+                ry="20"
+                fill={activeFinger === 'thumb' ? '#10B981' : '#9CA3AF'}
+                stroke={activeFinger === 'thumb' ? '#059669' : '#6B7280'}
+                strokeWidth="2"
+                filter={activeFinger === 'thumb' ? 'url(#fingerGlow)' : ''}
+              />
             </g>
           </g>
         </svg>
 
-        <div className="space-y-1 relative" style={{ paddingTop: '60px' }}>
+        <div className="space-y-1 relative" style={{ paddingTop: '80px' }}>
           {keyboardLayout.map((row, rowIndex) => (
             <div key={rowIndex} className="flex justify-center gap-1">
               {row.map((key) => (
