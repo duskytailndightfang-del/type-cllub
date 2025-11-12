@@ -113,13 +113,13 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           const word = words[currentWordIndex];
           const utterance = new SpeechSynthesisUtterance(word);
 
-          utterance.rate = 1.3;
+          utterance.rate = 1.5;
           utterance.pitch = 1.0;
           utterance.volume = 1.0;
 
           utterance.onend = () => {
             currentWordIndex++;
-            setTimeout(speakNextWord, 50);
+            speakNextWord();
           };
 
           window.speechSynthesis.speak(utterance);
