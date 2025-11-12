@@ -75,111 +75,111 @@ export const LiveKeyboard: React.FC<LiveKeyboardProps> = ({ activeKey, currentWp
         <div className="flex-1 relative">
           <svg
             className="absolute pointer-events-none z-10"
-            style={{ width: '100%', height: '100%', top: '0', left: '0' }}
-            viewBox="0 0 950 300"
+            style={{ width: '100%', height: '320px', top: '-30px', left: '0' }}
+            viewBox="0 0 900 320"
             preserveAspectRatio="xMidYMid meet"
           >
-            {/* LEFT HAND - positioned over keys */}
-            <g transform="translate(0, 0)">
-              {/* Left Pinky - over A/Q/Z keys */}
+            {/* LEFT HAND - realistic curved fingers from hand base */}
+            <g>
+              {/* Left Pinky - curved from hand to A/Q/Z keys */}
               <path
-                d="M 85,-20 Q 80,-30 75,-15 C 72,5 70,30 68,55 L 66,85 Q 65,105 70,115 Q 75,125 82,118 L 87,85 Q 90,55 92,25 Q 93,0 85,-20 Z"
+                d="M 60,190 Q 55,180 58,170 C 60,155 62,135 64,115 Q 66,90 68,70 Q 70,50 72,35 Q 74,20 76,10 Q 78,2 82,0 L 88,2 Q 92,5 90,15 Q 88,30 86,50 Q 84,75 82,100 Q 80,125 78,145 Q 76,165 74,180 Q 72,195 68,200 Z"
                 fill={activeFinger === 'left-pinky' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-pinky' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'left-pinky' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Ring - over S/W/X keys */}
+              {/* Left Ring - curved from hand to S/W/X keys */}
               <path
-                d="M 155,-30 Q 150,-40 145,-20 C 142,10 139,40 137,70 L 135,105 Q 134,130 139,140 Q 145,150 152,143 L 157,105 Q 160,70 163,35 Q 165,0 155,-30 Z"
+                d="M 90,200 Q 85,190 88,175 C 90,155 93,130 96,105 Q 99,75 102,50 Q 105,25 108,10 Q 111,0 115,-5 L 121,-5 Q 125,-2 123,10 Q 120,30 117,55 Q 114,85 111,115 Q 108,145 105,170 Q 102,190 98,202 Z"
                 fill={activeFinger === 'left-ring' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-ring' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'left-ring' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Middle - over D/E/C keys (longest) */}
+              {/* Left Middle - longest, curved from hand to D/E/C keys */}
               <path
-                d="M 225,-40 Q 220,-50 215,-25 C 212,10 209,50 207,85 L 205,125 Q 204,150 209,162 Q 215,174 222,167 L 227,125 Q 230,85 233,45 Q 235,5 225,-40 Z"
+                d="M 125,205 Q 120,195 123,175 C 126,150 130,120 134,90 Q 138,55 142,25 Q 146,5 150,-10 Q 154,-20 158,-25 L 164,-25 Q 168,-20 166,-5 Q 162,20 158,50 Q 154,85 150,120 Q 146,155 142,185 Q 138,200 132,208 Z"
                 fill={activeFinger === 'left-middle' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-middle' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'left-middle' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Index - over F/R/V keys */}
+              {/* Left Index - curved from hand to F/R/V keys */}
               <path
-                d="M 295,-30 Q 290,-40 285,-20 C 282,10 279,45 277,80 L 275,115 Q 274,140 279,152 Q 285,164 292,157 L 297,115 Q 300,80 303,40 Q 305,0 295,-30 Z"
+                d="M 165,202 Q 160,192 163,172 C 166,145 170,115 174,85 Q 178,50 182,25 Q 186,10 190,0 Q 194,-8 198,-12 L 204,-12 Q 208,-8 206,5 Q 202,25 198,55 Q 194,90 190,125 Q 186,160 182,185 Q 178,198 172,205 Z"
                 fill={activeFinger === 'left-index' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'left-index' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'left-index' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Left Thumb - over spacebar */}
+              {/* Left Thumb - curved from hand to spacebar */}
               <path
-                d="M 360,155 Q 350,150 345,160 L 340,180 Q 338,195 345,200 L 370,205 Q 385,205 395,195 L 400,175 Q 402,155 390,150 Q 375,148 360,155 Z"
+                d="M 240,220 Q 230,210 225,200 C 220,185 218,170 220,155 Q 222,145 228,140 L 240,135 Q 250,133 258,138 Q 265,143 268,152 L 270,165 Q 270,180 265,195 Q 260,210 250,218 Z"
                 fill={activeFinger === 'thumb' ? '#22C55E' : '#94A3B8'}
                 stroke={activeFinger === 'thumb' ? '#16A34A' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'thumb' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
             </g>
 
-            {/* RIGHT HAND - positioned over keys */}
-            <g transform="translate(0, 0)">
-              {/* Right Index - over J/U/N keys */}
+            {/* RIGHT HAND - realistic curved fingers from hand base */}
+            <g>
+              {/* Right Index - curved from hand to J/U/N keys */}
               <path
-                d="M 480,-30 Q 485,-40 490,-20 C 493,10 496,45 498,80 L 500,115 Q 501,140 496,152 Q 490,164 483,157 L 478,115 Q 475,80 472,40 Q 470,0 480,-30 Z"
+                d="M 405,202 Q 410,192 407,172 C 404,145 400,115 396,85 Q 392,50 388,25 Q 384,10 380,0 Q 376,-8 372,-12 L 366,-12 Q 362,-8 364,5 Q 368,25 372,55 Q 376,90 380,125 Q 384,160 388,185 Q 392,198 398,205 Z"
                 fill={activeFinger === 'right-index' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-index' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'right-index' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Middle - over K/I keys (longest) */}
+              {/* Right Middle - longest, curved from hand to K/I keys */}
               <path
-                d="M 550,-40 Q 555,-50 560,-25 C 563,10 566,50 568,85 L 570,125 Q 571,150 566,162 Q 560,174 553,167 L 548,125 Q 545,85 542,45 Q 540,5 550,-40 Z"
+                d="M 445,205 Q 450,195 447,175 C 444,150 440,120 436,90 Q 432,55 428,25 Q 424,5 420,-10 Q 416,-20 412,-25 L 406,-25 Q 402,-20 404,-5 Q 408,20 412,50 Q 416,85 420,120 Q 424,155 428,185 Q 432,200 438,208 Z"
                 fill={activeFinger === 'right-middle' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-middle' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'right-middle' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Ring - over L/O keys */}
+              {/* Right Ring - curved from hand to L/O keys */}
               <path
-                d="M 620,-30 Q 625,-40 630,-20 C 633,10 636,40 638,70 L 640,105 Q 641,130 636,140 Q 630,150 623,143 L 618,105 Q 615,70 612,35 Q 610,0 620,-30 Z"
+                d="M 480,200 Q 485,190 482,175 C 480,155 477,130 474,105 Q 471,75 468,50 Q 465,25 462,10 Q 459,0 455,-5 L 449,-5 Q 445,-2 447,10 Q 450,30 453,55 Q 456,85 459,115 Q 462,145 465,170 Q 468,190 472,202 Z"
                 fill={activeFinger === 'right-ring' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-ring' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'right-ring' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Pinky - over semicolon/P keys */}
+              {/* Right Pinky - curved from hand to semicolon/P keys */}
               <path
-                d="M 690,-20 Q 695,-30 700,-15 C 703,5 705,30 707,55 L 709,85 Q 710,105 705,115 Q 700,125 693,118 L 688,85 Q 685,55 683,25 Q 682,0 690,-20 Z"
+                d="M 510,190 Q 515,180 512,170 C 510,155 508,135 506,115 Q 504,90 502,70 Q 500,50 498,35 Q 496,20 494,10 Q 492,2 488,0 L 482,2 Q 478,5 480,15 Q 482,30 484,50 Q 486,75 488,100 Q 490,125 492,145 Q 494,165 496,180 Q 498,195 502,200 Z"
                 fill={activeFinger === 'right-pinky' ? '#4A90E2' : '#94A3B8'}
                 stroke={activeFinger === 'right-pinky' ? '#2563EB' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'right-pinky' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
 
-              {/* Right Thumb - over spacebar */}
+              {/* Right Thumb - curved from hand to spacebar */}
               <path
-                d="M 415,155 Q 425,150 430,160 L 435,180 Q 437,195 430,200 L 405,205 Q 390,205 380,195 L 375,175 Q 373,155 385,150 Q 400,148 415,155 Z"
+                d="M 330,220 Q 340,210 345,200 C 350,185 352,170 350,155 Q 348,145 342,140 L 330,135 Q 320,133 312,138 Q 305,143 302,152 L 300,165 Q 300,180 305,195 Q 310,210 320,218 Z"
                 fill={activeFinger === 'thumb' ? '#22C55E' : '#94A3B8'}
                 stroke={activeFinger === 'thumb' ? '#16A34A' : '#64748B'}
-                strokeWidth="2"
+                strokeWidth="3"
                 opacity={activeFinger === 'thumb' ? '0.9' : '0.1'}
                 className="transition-all duration-150 ease-out"
               />
