@@ -119,7 +119,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           utterance.onend = () => {
             currentWordIndex++;
-            setTimeout(speakNextWord, 500);
+            setTimeout(speakNextWord, 200);
           };
 
           window.speechSynthesis.speak(utterance);
