@@ -106,7 +106,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(classData.content);
-      utterance.rate = 0.8;
+      utterance.rate = 0.3;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
