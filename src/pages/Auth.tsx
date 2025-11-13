@@ -43,7 +43,7 @@ export const Auth: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 animate-[fadeIn_0.5s_ease-out]">
         <div className="flex items-center justify-center mb-6 animate-[bounceIn_0.6s_ease-out]">
-          <img src="/og logo 512.png" alt="TypeMind AI" className="w-20 h-20" />
+          <img src="/image.png" alt="TypeMind AI" className="w-32 h-auto" />
         </div>
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2 animate-[slideIn_0.4s_ease-out_0.2s_backwards]">TypeMind AI</h1>
         <p className="text-center text-gray-600 mb-8 animate-[slideIn_0.4s_ease-out_0.3s_backwards]">
