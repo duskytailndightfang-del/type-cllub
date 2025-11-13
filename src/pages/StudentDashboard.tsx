@@ -274,7 +274,7 @@ export const StudentDashboard: React.FC = () => {
         <header className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6 border-2 transition-all duration-500" style={{ borderColor: ranking?.theme === 'gold' ? '#fbbf24' : ranking?.theme === 'silver' ? '#9ca3af' : ranking?.theme === 'bronze' ? '#fb923c' : '#a855f7' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src="/image copy.png" alt="TypeMind AI" className="w-20 h-auto" />
+              <img src="/image copy copy.png" alt="TypeMind AI" className="w-20 h-auto" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">TypeMind AI</h1>
                 <p className="text-gray-600">Welcome back, {profile?.full_name}</p>
