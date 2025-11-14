@@ -80,7 +80,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
       const elapsedMinutes = (Date.now() - startTime) / 60000;
 
-      if (elapsedMinutes === 0) {
+      if (elapsedMinutes <= 0) {
         setCurrentWpm(0);
         setCurrentAccuracy(0);
         return;
@@ -88,15 +88,23 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
       const charactersPerWord = 5;
       const grossWpm = (totalKeystrokes / charactersPerWord) / elapsedMinutes;
-      const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
-      const calculatedWpm = Math.round(netWpm);
+
+      // For audio lessons, show gross WPM (typing speed without error penalty)
+      // For text lessons, show net WPM (typing speed with error penalty)
+      let calculatedWpm;
+      if (classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') {
+        calculatedWpm = Math.round(grossWpm);
+      } else {
+        const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
+        calculatedWpm = Math.round(netWpm);
+      }
 
       const calculatedAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100);
 
       setCurrentWpm(calculatedWpm);
       setCurrentAccuracy(calculatedAccuracy);
     }
-  }, [correctKeystrokes, incorrectKeystrokes, unfixedErrors, started, finished, startTime]);
+  }, [correctKeystrokes, incorrectKeystrokes, unfixedErrors, started, finished, startTime, timeSpent, classData.module_type]);
 
   const checkIfFirstCompletion = async () => {
     try {
@@ -171,8 +179,16 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     const charactersPerWord = 5;
 
     const grossWpm = (totalKeystrokes / charactersPerWord) / elapsedMinutes;
-    const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
-    const calculatedWpm = Math.round(netWpm);
+
+    // For audio lessons, use gross WPM (typing speed without error penalty)
+    // For text lessons, use net WPM (typing speed with error penalty)
+    let calculatedWpm;
+    if (classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') {
+      calculatedWpm = Math.round(grossWpm);
+    } else {
+      const netWpm = Math.max(0, grossWpm - (unfixedErrors / elapsedMinutes));
+      calculatedWpm = Math.round(netWpm);
+    }
 
     const calculatedAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100);
     const calculatedScore = calculateScore(calculatedWpm, calculatedAccuracy);
