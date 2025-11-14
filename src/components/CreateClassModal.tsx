@@ -40,6 +40,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   const [moduleType, setModuleType] = useState<'text' | 'audio_sentence' | 'audio_paragraph'>('text');
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [backspaceEnabled, setBackspaceEnabled] = useState(true);
   const [audioData, setAudioData] = useState<{
     audioUrl: string;
     audioFile?: File;
@@ -160,6 +161,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
         audio_source: audioData?.audioSource,
         voice_id: audioData?.voiceId,
         playback_speed: audioData?.playbackSpeed,
+        backspace_enabled: backspaceEnabled,
         created_by: profile?.id,
       });
 
@@ -284,6 +286,30 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               />
             </div>
           )}
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <span className="text-sm font-medium text-gray-700">Allow Backspace</span>
+                <p className="text-xs text-gray-500 mt-1">
+                  When disabled, students cannot use backspace to correct mistakes during typing
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBackspaceEnabled(!backspaceEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  backspaceEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    backspaceEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </label>
+          </div>
 
           <div className="flex gap-4">
             <button

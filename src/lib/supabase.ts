@@ -31,6 +31,7 @@ export interface Class {
   audio_source?: 'elevenlabs' | 'upload' | null;
   voice_id?: string | null;
   playback_speed?: number | null;
+  backspace_enabled?: boolean;
   created_by: string | null;
   created_at: string;
 }
