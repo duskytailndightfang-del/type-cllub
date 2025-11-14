@@ -472,14 +472,13 @@ export const StudentDashboard: React.FC = () => {
                     ) : (
                       <p className="text-gray-500 text-sm italic mb-4">Audio lesson - Listen and type</p>
                     )}
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        onClick={() => setSelectedClass(classItem)}
-                        className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                      >
-                        {isCompleted ? 'Practice Again' : 'Start Lesson'}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setSelectedClass(classItem)}
+                      className="w-full px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium hover:opacity-90"
+                      style={{ backgroundColor: '#531b93' }}
+                    >
+                      {isCompleted ? 'Practice Again' : 'Start Lesson'}
+                    </button>
                   </div>
                 );
               })}
