@@ -29,8 +29,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const abacusApiKey = Deno.env.get("ABACUS_AI_API_KEY");
+    const abacusApiKey = Deno.env.get("VITE_ABACUS_AI_API_KEY") || Deno.env.get("ABACUS_AI_API_KEY");
     if (!abacusApiKey) {
+      console.error("Abacus AI API key not found in environment");
       return new Response(
         JSON.stringify({ error: "Abacus AI API key not configured" }),
         {
@@ -42,6 +43,8 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    console.log("Transcribing audio file:", audioFile.name, "Size:", audioFile.size);
 
     const transcriptionFormData = new FormData();
     transcriptionFormData.append("file", audioFile);
@@ -61,7 +64,7 @@ Deno.serve(async (req: Request) => {
       const errorText = await abacusResponse.text();
       console.error("Abacus AI API error:", errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to transcribe audio" }),
+        JSON.stringify({ error: "Failed to transcribe audio", details: errorText }),
         {
           status: 500,
           headers: {
@@ -73,6 +76,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const transcriptionData = await abacusResponse.json();
+    console.log("Transcription successful");
 
     return new Response(
       JSON.stringify({
@@ -89,7 +93,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error in transcribe-audio function:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", details: error instanceof Error ? error.message : String(error) }),
       {
         status: 500,
         headers: {
