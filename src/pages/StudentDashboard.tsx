@@ -111,90 +111,95 @@ export const StudentDashboard: React.FC = () => {
 
   const downloadCertificate = (cert: Certification) => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 800;
+    canvas.width = 1600;
+    canvas.height = 900;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Determine background based on rank level
     const rankLevel = cert.rank_achieved.split('-')[0];
-    let bgColor1 = '#ffffff';
-    let bgColor2 = '#ffffff';
 
-    if (rankLevel === 'D' || rankLevel === 'C') {
-      // Beginner: White
-      bgColor1 = '#ffffff';
-      bgColor2 = '#f9fafb';
-    } else if (rankLevel === 'B' || rankLevel === 'A') {
-      // Intermediate: Teal
-      bgColor1 = '#009193';
-      bgColor2 = '#006d6f';
-    } else if (rankLevel === 'S') {
-      // Advanced: Purple
-      bgColor1 = '#531b93';
-      bgColor2 = '#3d1470';
+    // White background for all certificates
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 1600, 900);
+
+    // Purple decorative corners (top-left)
+    ctx.fillStyle = '#531b93';
+    ctx.beginPath();
+    ctx.arc(0, 0, 200, 0, Math.PI / 2);
+    ctx.fill();
+
+    // Purple decorative corners (bottom-left)
+    ctx.beginPath();
+    ctx.arc(0, 900, 200, 1.5 * Math.PI, 0);
+    ctx.fill();
+
+    // Teal dots pattern (bottom-right)
+    ctx.fillStyle = '#009193';
+    const dotSize = 8;
+    const dotSpacing = 20;
+    for (let row = 0; row < 12; row++) {
+      for (let col = 0; col < 15; col++) {
+        ctx.beginPath();
+        ctx.arc(1300 + col * dotSpacing, 600 + row * dotSpacing, dotSize / 2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
     }
 
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
-    gradient.addColorStop(0, bgColor1);
-    gradient.addColorStop(1, bgColor2);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1200, 800);
+    // Logo area at top (purple rounded rectangle)
+    ctx.fillStyle = '#531b93';
+    ctx.beginPath();
+    ctx.roundRect(700, 80, 200, 100, 20);
+    ctx.fill();
 
-    // Border - Teal
-    ctx.strokeStyle = '#009193';
-    ctx.lineWidth = 20;
-    ctx.strokeRect(40, 40, 1120, 720);
-
-    // Inner border - Purple
-    ctx.strokeStyle = '#531b93';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(60, 60, 1080, 680);
-
-    // Title - Teal for white bg, white for colored bg
-    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#009193' : '#ffffff';
-    ctx.font = 'bold 60px Arial';
+    // Logo text placeholder
+    ctx.fillStyle = '#009193';
+    ctx.font = 'bold 28px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('CERTIFICATE OF ACHIEVEMENT', 600, 150);
+    ctx.fillText('Type', 800, 120);
+    ctx.fillStyle = '#531b93';
+    ctx.fillText('MindAI', 800, 150);
+
+    // Main title - CERTIFICATE OF ACHIEVEMENT
+    ctx.fillStyle = '#531b93';
+    ctx.font = 'bold 72px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('CERTIFICATE OF ACHIEVEMENT', 800, 280);
 
     // Subtitle
-    ctx.font = '24px Arial';
-    ctx.fillText('TypeMindAI - Typing Excellence Program', 600, 200);
+    ctx.fillStyle = '#531b93';
+    ctx.font = '28px Arial';
+    ctx.fillText('This certificate is proudly presented to', 800, 350);
 
-    // Student name
-    ctx.font = 'italic 32px Arial';
-    ctx.fillText('This certifies that', 600, 280);
-    ctx.font = 'bold 48px Arial';
-    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#1f2937' : '#ffffff';
-    ctx.fillText(profile?.full_name || 'Student', 600, 350);
+    // Student name - TEAL
+    ctx.fillStyle = '#009193';
+    ctx.font = 'bold 80px Arial';
+    ctx.fillText(profile?.full_name?.toUpperCase() || 'STUDENT', 800, 450);
 
     // Achievement text
-    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#009193' : '#ffffff';
-    ctx.font = 'italic 28px Arial';
-    ctx.fillText('has successfully achieved', 600, 410);
-
-    // Rank badge - Purple background
     ctx.fillStyle = '#531b93';
-    ctx.fillRect(450, 440, 300, 80);
+    ctx.font = '32px Arial';
+    ctx.fillText('for achieving ', 600, 550);
+
+    // Grade text - TEAL
+    ctx.fillStyle = '#009193';
+    ctx.font = 'bold 32px Arial';
+    ctx.fillText(`Grade: ${rankLevel}`, 820, 550);
+
+    // Continue achievement text
+    ctx.fillStyle = '#531b93';
+    ctx.font = '32px Arial';
+    ctx.fillText(' in typing training.', 1020, 550);
+
+    // Bottom logo (purple rounded square)
+    ctx.fillStyle = '#531b93';
+    ctx.beginPath();
+    ctx.roundRect(700, 650, 200, 100, 20);
+    ctx.fill();
+
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 42px Arial';
-    ctx.fillText(cert.rank_achieved, 600, 490);
-
-    // Stats
-    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#1f2937' : '#ffffff';
-    ctx.font = '22px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Total Points: ${cert.points_at_issue}`, 300, 580);
-    ctx.fillText(`WPM: ${Math.round(cert.wpm_at_issue)}`, 300, 620);
-    ctx.fillText(`Accuracy: ${Math.round(cert.accuracy_at_issue)}%`, 700, 580);
-    ctx.fillText(`Date: ${new Date(cert.issued_at).toLocaleDateString()}`, 700, 620);
-
-    // Footer
-    ctx.textAlign = 'center';
-    ctx.font = 'italic 18px Arial';
-    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#531b93' : '#ffffff';
-    ctx.fillText('For demonstrating exceptional typing proficiency and dedication', 600, 700);
+    ctx.font = 'bold 48px Arial';
+    ctx.fillText('OG', 800, 715);
 
     // Download
     canvas.toBlob((blob) => {

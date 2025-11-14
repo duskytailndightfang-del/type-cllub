@@ -307,10 +307,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl">
+                  <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(to bottom right, #531b93, #3d1470)' }}>
                     <Users className="w-6 h-6 text-white" />
                   </div>
-                  <Sparkles className="w-5 h-5 text-blue-400" />
+                  <Sparkles className="w-5 h-5" style={{ color: '#531b93' }} />
                 </div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalStudents}</div>
                 <div className="text-sm text-slate-600 font-medium">Total Students</div>
@@ -322,40 +322,40 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-3 rounded-xl">
+                  <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(to bottom right, #009193, #006d6f)' }}>
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
-                  <Target className="w-5 h-5 text-emerald-400" />
+                  <Target className="w-5 h-5" style={{ color: '#009193' }} />
                 </div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalLessons}</div>
                 <div className="text-sm text-slate-600 font-medium">Total Lessons</div>
                 <div className="mt-3 flex items-center gap-2">
                   <div className="h-2 flex-1 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-full"></div>
+                    <div className="h-full w-full" style={{ background: 'linear-gradient(to right, #009193, #006d6f)' }}></div>
                   </div>
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl">
+                  <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(to bottom right, #531b93, #3d1470)' }}>
                     <Activity className="w-6 h-6 text-white" />
                   </div>
-                  <TrendingUp className="w-5 h-5 text-purple-400" />
+                  <TrendingUp className="w-5 h-5" style={{ color: '#531b93' }} />
                 </div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalCompletions}</div>
                 <div className="text-sm text-slate-600 font-medium">Lesson Completions</div>
-                <div className="mt-3 text-xs text-purple-600 font-semibold">
+                <div className="mt-3 text-xs font-semibold" style={{ color: '#531b93' }}>
                   {stats.totalPointsAwarded.toLocaleString()} Points Awarded
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-amber-500 to-amber-600 p-3 rounded-xl">
+                  <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(to bottom right, #009193, #006d6f)' }}>
                     <Zap className="w-6 h-6 text-white" />
                   </div>
-                  <Award className="w-5 h-5 text-amber-400" />
+                  <Award className="w-5 h-5" style={{ color: '#009193' }} />
                 </div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">{stats.avgWpm}</div>
                 <div className="text-sm text-slate-600 font-medium">Avg. WPM</div>
@@ -368,7 +368,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <PieChart className="w-6 h-6 text-blue-600" />
+                  <PieChart className="w-6 h-6" style={{ color: '#531b93' }} />
                   <h3 className="text-xl font-bold text-slate-900">Student Status Distribution</h3>
                 </div>
                 <div className="space-y-4">
@@ -407,7 +407,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <Trophy className="w-6 h-6 text-amber-600" />
+                  <Trophy className="w-6 h-6" style={{ color: '#009193' }} />
                   <h3 className="text-xl font-bold text-slate-900">Top Performers</h3>
                 </div>
                 <div className="space-y-3">
@@ -437,14 +437,14 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-2xl p-8 text-white">
+            <div className="rounded-2xl shadow-2xl p-8 text-white" style={{ background: 'linear-gradient(to bottom right, #531b93, #3d1470)' }}>
               <div className="flex items-center gap-4 mb-6">
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
                   <Target className="w-8 h-8" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">Platform Insights</h3>
-                  <p className="text-blue-100">Real-time analytics and metrics</p>
+                  <p className="text-purple-100">Real-time analytics and metrics</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -452,25 +452,25 @@ export const AdminDashboard: React.FC = () => {
                   <div className="text-3xl font-bold mb-1">
                     {users.filter(u => u.ranking).length}
                   </div>
-                  <div className="text-sm text-blue-100">Active Learners</div>
+                  <div className="text-sm text-purple-100">Active Learners</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="text-3xl font-bold mb-1">
                     {stats.totalCompletions > 0 ? Math.round(stats.totalCompletions / stats.totalLessons) : 0}
                   </div>
-                  <div className="text-sm text-blue-100">Avg. Completions/Lesson</div>
+                  <div className="text-sm text-purple-100">Avg. Completions/Lesson</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="text-3xl font-bold mb-1">
                     {users.filter(u => u.ranking && u.ranking.overall_position <= 10).length}
                   </div>
-                  <div className="text-sm text-blue-100">Top 10 Users</div>
+                  <div className="text-sm text-purple-100">Top 10 Users</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="text-3xl font-bold mb-1">
                     {Math.round((stats.approvedStudents / Math.max(stats.totalStudents, 1)) * 100)}%
                   </div>
-                  <div className="text-sm text-blue-100">Approval Rate</div>
+                  <div className="text-sm text-purple-100">Approval Rate</div>
                 </div>
               </div>
             </div>
