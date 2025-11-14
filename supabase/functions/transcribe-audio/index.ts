@@ -29,11 +29,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const abacusApiKey = Deno.env.get("VITE_ABACUS_AI_API_KEY") || Deno.env.get("ABACUS_AI_API_KEY");
+    // In Supabase Edge Functions, all env vars are auto-populated
+    // Try multiple possible environment variable names
+    const abacusApiKey = Deno.env.get("ABACUS_AI_API_KEY") ||
+                         Deno.env.get("VITE_ABACUS_AI_API_KEY") ||
+                         Deno.env.get("ABACUS_API_KEY");
+
+    console.log("Environment variables available:", Object.keys(Deno.env.toObject()));
+    console.log("Looking for Abacus AI API key...");
+
     if (!abacusApiKey) {
-      console.error("Abacus AI API key not found in environment");
+      console.error("Abacus AI API key not found. Checked: ABACUS_AI_API_KEY, VITE_ABACUS_AI_API_KEY, ABACUS_API_KEY");
       return new Response(
-        JSON.stringify({ error: "Abacus AI API key not configured" }),
+        JSON.stringify({
+          error: "Abacus AI API key not configured",
+          hint: "Please set ABACUS_AI_API_KEY in your Supabase secrets"
+        }),
         {
           status: 500,
           headers: {
@@ -43,6 +54,8 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    console.log("Abacus AI API key found");
 
     console.log("Transcribing audio file:", audioFile.name, "Size:", audioFile.size);
 

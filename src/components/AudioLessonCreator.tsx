@@ -415,21 +415,30 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transcript {isTranscribing && <span className="text-blue-600">(Auto-transcribing...)</span>}
-                {!isTranscribing && <span className="text-xs text-gray-500 ml-2">Edit if needed or let AI transcribe</span>}
+                Transcript
+                {isTranscribing && <span className="text-blue-600 ml-2">(Auto-transcribing...)</span>}
+                {!isTranscribing && transcript && <span className="text-green-600 ml-2">✓ Transcribed</span>}
               </label>
               <textarea
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent ${
+                  isTranscribing
+                    ? 'border-blue-300 bg-blue-50'
+                    : transcript
+                    ? 'border-green-300 focus:ring-green-500'
+                    : 'border-gray-300 focus:ring-green-500'
+                }`}
                 placeholder="Transcript will be generated automatically using Abacus AI. You can edit it if needed."
                 disabled={isTranscribing}
               />
               <p className="text-xs text-gray-500 mt-1">
                 {isTranscribing
-                  ? 'Please wait while we transcribe your audio...'
-                  : 'Students will hear the audio and type what they hear. This transcript is used to check their accuracy.'}
+                  ? '⏳ Please wait while we transcribe your audio...'
+                  : transcript
+                  ? '✓ This transcript will be used to check student typing accuracy. Edit if needed.'
+                  : '💡 Upload an audio file to auto-generate the transcript, or type it manually.'}
               </p>
             </div>
 

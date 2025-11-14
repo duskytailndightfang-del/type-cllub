@@ -23,10 +23,14 @@ export interface Profile {
 export interface Class {
   id: string;
   title: string;
-  content: string;
+  content: string | null;
+  transcript?: string | null;
   level: 'beginner' | 'intermediate' | 'advanced' | 'all';
   module_type: 'text' | 'audio_sentence' | 'audio_paragraph';
   audio_url?: string | null;
+  audio_source?: 'elevenlabs' | 'upload' | null;
+  voice_id?: string | null;
+  playback_speed?: number | null;
   created_by: string | null;
   created_at: string;
 }
