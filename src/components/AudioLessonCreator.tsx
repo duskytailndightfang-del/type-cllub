@@ -20,6 +20,24 @@ const ELEVENLABS_VOICES = [
   { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli (Female)' },
 ];
 
+const healthcareTexts = [
+  'The patient needs vital signs checked. Blood pressure is measured in the exam room.',
+  'Medical records must be kept secure. Patient privacy is very important.',
+  'Nurses wear scrubs to work. They check patient charts daily.',
+  'The doctor orders lab tests. Results come back quickly.',
+  'Hospital beds are cleaned often. Hand washing prevents infection.',
+  "The patient's vital signs are stable and within normal range.",
+  'Proper hand hygiene prevents the spread of hospital-acquired infections.',
+  'The diagnostic imaging revealed no abnormalities in the chest cavity.',
+  'Administering the prescribed medication according to the dosage schedule is crucial.',
+  'The surgeon reviewed the preoperative checklist before entering the operating room.',
+  'Cardiac monitoring is essential for patients with heart conditions.',
+  'The nurse documented all observations in the electronic health record.',
+  'Sterile technique must be maintained during all invasive procedures.',
+  'The pharmacist verified the dosage and potential drug interactions.',
+  'Emergency response protocols should be followed in critical situations.',
+];
+
 export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioCreated }) => {
   const [mode, setMode] = useState<'elevenlabs' | 'upload' | null>(null);
   const [transcript, setTranscript] = useState('');
@@ -33,60 +51,14 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
 
-  const handleGenerateText = async () => {
-    const abacusApiKey = import.meta.env.VITE_ABACUS_AI_API_KEY;
-    if (!abacusApiKey) {
-      alert('Please add your Abacus AI API key to the .env file as VITE_ABACUS_AI_API_KEY');
-      return;
-    }
-
+  const handleGenerateText = () => {
     setIsGeneratingText(true);
-    try {
-      console.log('Generating healthcare text with Abacus AI...');
 
-      const response = await fetch('https://api.abacus.ai/api/v0/deployments/chatllm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Api-Key': abacusApiKey,
-        },
-        body: JSON.stringify({
-          deployment_token: 'e7d5ba04f3d047c69a38514cbf47c09e',
-          deployment_id: '09ee94c9e9',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a medical typing tutor. Generate healthcare and medical-related sentences for typing practice. Sentences should be professional, clear, and appropriate for medical professionals or students learning medical terminology.'
-            },
-            {
-              role: 'user',
-              content: 'Generate a single medical or healthcare-related sentence for typing practice. Make it professional and realistic, between 50-150 characters. Only return the sentence, nothing else.'
-            }
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Abacus AI error:', errorText);
-        throw new Error(`Failed to generate text: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const generatedText = data.messages?.[0]?.content || data.content || '';
-
-      if (generatedText.trim()) {
-        setTranscript(generatedText.trim());
-        console.log('Text generated successfully:', generatedText);
-      } else {
-        throw new Error('No text generated');
-      }
-    } catch (error) {
-      console.error('Error generating text:', error);
-      alert('Failed to generate text. Please try again or enter text manually.');
-    } finally {
+    setTimeout(() => {
+      const randomText = healthcareTexts[Math.floor(Math.random() * healthcareTexts.length)];
+      setTranscript(randomText);
       setIsGeneratingText(false);
-    }
+    }, 500);
   };
 
   const handleGenerateAudio = async () => {
