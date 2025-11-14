@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mic, Upload, Volume2, Loader2, Play, Pause } from 'lucide-react';
+import { Mic, Upload, Volume2, Loader2, Play, Pause, AlertCircle } from 'lucide-react';
 
 interface AudioLessonCreatorProps {
   onAudioCreated: (audioData: {
@@ -85,43 +85,8 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
     }
 
     setUploadedFile(file);
-    setIsTranscribing(true);
-
-    try {
-      console.log('Transcribing audio file:', file.name);
-
-      const formData = new FormData();
-      formData.append('audio', file);
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('Transcription failed:', data);
-        throw new Error(data.error || 'Failed to transcribe audio');
-      }
-
-      console.log('Transcription successful:', data);
-      setTranscript(data.transcript);
-
-      const audioUrl = URL.createObjectURL(file);
-      setGeneratedAudioUrl(audioUrl);
-    } catch (error) {
-      console.error('Error transcribing audio:', error);
-      alert('Failed to transcribe audio. Please try again.');
-    } finally {
-      setIsTranscribing(false);
-    }
+    const audioUrl = URL.createObjectURL(file);
+    setGeneratedAudioUrl(audioUrl);
   };
 
   const togglePlayPause = () => {
@@ -129,7 +94,7 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
     if (!audioElement) {
       const audio = new Audio(generatedAudioUrl);
-      audio.playbackRate = playbackSpeed;
+      audio.playbackRate = mode === 'elevenlabs' ? playbackSpeed : 1.0;
       audio.onended = () => setIsPlaying(false);
       setAudioElement(audio);
       audio.play();
@@ -147,7 +112,7 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
   const handleConfirm = async () => {
     if (!generatedAudioUrl || !transcript.trim()) {
-      alert('Please generate or upload audio and ensure transcript is available');
+      alert('Please ensure both audio and transcript are provided');
       return;
     }
 
@@ -215,6 +180,14 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           >
             Change Method
           </button>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800">
+            <strong>Note:</strong> This feature requires the Edge Functions to be deployed to Supabase.
+            Please deploy the 'generate-audio' function with your ElevenLabs API key configured as a secret.
+          </div>
         </div>
 
         <div>
@@ -352,26 +325,23 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           </label>
         </div>
 
-        {isTranscribing && (
-          <div className="flex items-center justify-center gap-2 text-blue-600">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Transcribing audio...</span>
-          </div>
-        )}
-
-        {transcript && (
+        {generatedAudioUrl && (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Auto-Generated Transcript (editable)
+                Transcript (Required)
+                <span className="text-xs text-gray-500 ml-2">Enter the text that matches your audio</span>
               </label>
               <textarea
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Transcript will appear here..."
+                placeholder="Type the transcript that matches the audio content. This will be used to calculate typing accuracy when students complete the lesson."
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Students will hear the audio and type what they hear. This transcript is used to check their accuracy.
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -394,7 +364,8 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                disabled={!transcript.trim()}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Confirm & Use This Audio
               </button>
