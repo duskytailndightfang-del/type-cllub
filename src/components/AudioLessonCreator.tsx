@@ -37,39 +37,51 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
       return;
     }
 
+    const elevenLabsApiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+    if (!elevenLabsApiKey) {
+      alert('Please add your ElevenLabs API key to the .env file as VITE_ELEVENLABS_API_KEY');
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      console.log('Generating audio...', { text: transcript.substring(0, 50), voiceId: selectedVoice });
+      console.log('Generating audio with ElevenLabs...', { text: transcript.substring(0, 50), voiceId: selectedVoice });
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-audio`,
+        `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Accept': 'audio/mpeg',
             'Content-Type': 'application/json',
+            'xi-api-key': elevenLabsApiKey,
           },
           body: JSON.stringify({
             text: transcript,
-            voiceId: selectedVoice,
-            speed: playbackSpeed,
+            model_id: 'eleven_monolingual_v1',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+            },
           }),
         }
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error('Generate audio failed:', data);
-        throw new Error(data.error || data.details || 'Failed to generate audio');
+        const errorText = await response.text();
+        console.error('ElevenLabs API error:', errorText);
+        throw new Error(`Failed to generate audio: ${response.status} ${response.statusText}`);
       }
 
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
       console.log('Audio generated successfully');
-      setGeneratedAudioUrl(data.audioUrl);
+      setGeneratedAudioUrl(audioUrl);
     } catch (error) {
       console.error('Error generating audio:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to generate audio: ${errorMessage}\n\nPlease ensure your ElevenLabs API key is configured in Supabase Edge Function secrets.`);
+      alert(`Failed to generate audio: ${errorMessage}`);
     } finally {
       setIsGenerating(false);
     }
@@ -182,13 +194,14 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           </button>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800">
-            <strong>Note:</strong> This feature requires the Edge Functions to be deployed to Supabase.
-            Please deploy the 'generate-audio' function with your ElevenLabs API key configured as a secret.
+        {!import.meta.env.VITE_ELEVENLABS_API_KEY && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-amber-800">
+              <strong>Note:</strong> Please add your ElevenLabs API key to the .env file as VITE_ELEVENLABS_API_KEY to use this feature.
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
