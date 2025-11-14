@@ -4,6 +4,7 @@ import { Mic, Upload, Volume2, Loader2, Play, Pause, AlertCircle } from 'lucide-
 interface AudioLessonCreatorProps {
   onAudioCreated: (audioData: {
     audioUrl: string;
+    audioFile?: File;
     transcript: string;
     audioSource: 'elevenlabs' | 'upload';
     voiceId?: string;
@@ -96,6 +97,7 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
       return;
     }
 
+    console.log('Audio file uploaded:', file.name, file.size, file.type);
     setUploadedFile(file);
     const audioUrl = URL.createObjectURL(file);
     setGeneratedAudioUrl(audioUrl);
@@ -107,6 +109,7 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
     if (abacusApiKey && supabaseUrl && supabaseAnonKey) {
       setIsTranscribing(true);
       try {
+        console.log('Starting transcription with Abacus AI...');
         const formData = new FormData();
         formData.append('audio', file);
 
@@ -118,20 +121,31 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           body: formData,
         });
 
+        console.log('Transcription response status:', response.status);
+        const responseText = await response.text();
+        console.log('Transcription response:', responseText);
+
         if (response.ok) {
-          const data = await response.json();
+          const data = JSON.parse(responseText);
           if (data.transcript) {
+            console.log('Transcript received:', data.transcript.substring(0, 100));
             setTranscript(data.transcript);
-            console.log('Audio transcribed successfully');
+          } else {
+            console.warn('No transcript in response:', data);
+            alert('Transcription completed but no text was found. Please enter the transcript manually.');
           }
         } else {
-          console.error('Transcription failed:', await response.text());
+          console.error('Transcription failed:', responseText);
+          alert('Transcription failed. Please enter the transcript manually.');
         }
       } catch (error) {
         console.error('Error transcribing audio:', error);
+        alert('Error during transcription. Please enter the transcript manually.');
       } finally {
         setIsTranscribing(false);
       }
+    } else {
+      console.log('Abacus AI not configured, skipping auto-transcription');
     }
   };
 
@@ -164,6 +178,7 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
     onAudioCreated({
       audioUrl: generatedAudioUrl,
+      audioFile: mode === 'upload' ? uploadedFile || undefined : undefined,
       transcript: transcript.trim(),
       audioSource: mode!,
       voiceId: mode === 'elevenlabs' ? selectedVoice : undefined,
@@ -353,7 +368,9 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
           </button>
         </div>
 
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <div className={`border-2 border-dashed rounded-lg p-8 text-center ${
+          uploadedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-white'
+        }`}>
           <input
             type="file"
             accept="audio/*"
@@ -373,11 +390,21 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
                   Transcribing audio with Abacus AI...
                 </span>
               </>
+            ) : uploadedFile ? (
+              <>
+                <Upload className="w-12 h-12 text-green-600" />
+                <span className="text-sm font-semibold text-green-700">
+                  ✓ {uploadedFile.name}
+                </span>
+                <span className="text-xs text-green-600">
+                  Click to upload a different file
+                </span>
+              </>
             ) : (
               <>
                 <Upload className="w-12 h-12 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {uploadedFile ? uploadedFile.name : 'Click to upload audio file (MP3, WAV, etc.)'}
+                  Click to upload audio file (MP3, WAV, etc.)
                 </span>
               </>
             )}

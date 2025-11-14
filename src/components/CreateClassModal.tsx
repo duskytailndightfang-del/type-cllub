@@ -42,6 +42,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   const [generating, setGenerating] = useState(false);
   const [audioData, setAudioData] = useState<{
     audioUrl: string;
+    audioFile?: File;
     transcript: string;
     audioSource: 'elevenlabs' | 'upload';
     voiceId?: string;
@@ -60,17 +61,28 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     }, 500);
   };
 
-  const uploadAudioToStorage = async (audioUrl: string): Promise<string | null> => {
+  const uploadAudioToStorage = async (audioUrl: string, audioFile?: File): Promise<string | null> => {
     try {
       let blob: Blob;
+      let fileExtension = 'mp3';
 
-      // Check if it's a blob URL or data URL
-      if (audioUrl.startsWith('blob:')) {
-        // Fetch the blob from the blob URL
+      // If we have the original File object, use it directly
+      if (audioFile) {
+        console.log('Using original file object:', audioFile.name, audioFile.type);
+        blob = audioFile;
+        // Extract file extension from the original file
+        const nameParts = audioFile.name.split('.');
+        if (nameParts.length > 1) {
+          fileExtension = nameParts[nameParts.length - 1];
+        }
+      } else if (audioUrl.startsWith('blob:')) {
+        // Fetch the blob from the blob URL (for generated audio)
+        console.log('Fetching blob from URL');
         const response = await fetch(audioUrl);
         blob = await response.blob();
       } else if (audioUrl.startsWith('data:')) {
         // Convert data URL to blob
+        console.log('Converting data URL to blob');
         const base64Data = audioUrl.split(',')[1];
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -83,22 +95,28 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
         throw new Error('Invalid audio URL format');
       }
 
-      const fileName = `${profile?.id}-${Date.now()}.mp3`;
+      const fileName = `${profile?.id}-${Date.now()}.${fileExtension}`;
       const filePath = `audio/${fileName}`;
+
+      console.log('Uploading to storage:', filePath, blob.size, blob.type);
 
       const { error: uploadError } = await supabase.storage
         .from('class-audio')
         .upload(filePath, blob, {
-          contentType: 'audio/mpeg',
+          contentType: blob.type || 'audio/mpeg',
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: urlData } = supabase.storage
         .from('class-audio')
         .getPublicUrl(filePath);
 
+      console.log('Audio uploaded successfully:', urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading audio:', error);
@@ -122,12 +140,15 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
       let transcript = content;
 
       if (audioData) {
-        audioUrl = await uploadAudioToStorage(audioData.audioUrl);
+        console.log('Uploading audio file to storage...');
+        audioUrl = await uploadAudioToStorage(audioData.audioUrl, audioData.audioFile);
         if (!audioUrl) {
           setLoading(false);
           return;
         }
         transcript = audioData.transcript;
+        console.log('Audio URL:', audioUrl);
+        console.log('Transcript length:', transcript.length);
       }
 
       const { error } = await supabase.from('classes').insert({
