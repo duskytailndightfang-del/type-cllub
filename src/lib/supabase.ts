@@ -23,7 +23,7 @@ export interface Profile {
 export interface Class {
   id: string;
   title: string;
-  content: string;
+  content: string | null;
   level: 'beginner' | 'intermediate' | 'advanced' | 'all';
   module_type: 'text' | 'audio_sentence' | 'audio_paragraph';
   audio_url?: string | null;

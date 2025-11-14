@@ -101,6 +101,12 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     setLoading(true);
 
     try {
+      if (!content.trim() && (moduleType === 'text' || ((moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'ai'))) {
+        alert('Content is required for this lesson type');
+        setLoading(false);
+        return;
+      }
+
       let audioUrl: string | null = null;
 
       if ((moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'upload') {
@@ -118,7 +124,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
 
       const { error } = await supabase.from('classes').insert({
         title,
-        content,
+        content: content.trim() || null,
         level,
         module_type: moduleType,
         audio_url: audioUrl,
@@ -269,14 +275,25 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               rows={6}
               placeholder={
                 moduleType === 'audio_sentence' || moduleType === 'audio_paragraph'
-                  ? 'Enter the transcript/text that students will type...'
+                  ? audioSource === 'upload'
+                    ? 'Optional: Enter the transcript/text that students will type...'
+                    : 'Enter the transcript/text that students will type...'
                   : 'Enter the text content for this class...'
               }
-              required
+              required={
+                moduleType === 'text' ||
+                (moduleType === 'audio_sentence' && audioSource === 'ai') ||
+                (moduleType === 'audio_paragraph' && audioSource === 'ai')
+              }
             />
-            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && (
+            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'ai' && (
               <p className="text-xs text-gray-500 mt-1">
                 This text will be hidden from students during the lesson. They will only hear the audio.
+              </p>
+            )}
+            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'upload' && (
+              <p className="text-xs text-green-600 mt-1">
+                Transcript is optional when uploading audio. Students will type what they hear.
               </p>
             )}
           </div>
