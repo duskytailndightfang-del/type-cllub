@@ -45,7 +45,7 @@ export const Auth: React.FC = () => {
         <div className="flex items-center justify-center mb-6 animate-[bounceIn_0.6s_ease-out]">
           <img src="/type mind.png" alt="TypeMindAI" className="w-32 h-auto" />
         </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2 animate-[slideIn_0.4s_ease-out_0.2s_backwards]">TypeMindAI</h1>
+        <h1 className="text-3xl font-bold text-center mb-2 animate-[slideIn_0.4s_ease-out_0.2s_backwards]" style={{ color: '#531b93' }}>TypeMindAI</h1>
         <p className="text-center text-gray-600 mb-8 animate-[slideIn_0.4s_ease-out_0.3s_backwards]">
           {isAdminSignUp ? 'Create admin account' : isSignUp ? 'Create your account' : 'Sign in to continue'}
         </p>
