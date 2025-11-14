@@ -76,26 +76,20 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
       const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
       const filePath = `audio/${fileName}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('class-audio')
-        .upload(filePath, audioFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(filePath, audioFile);
 
-      if (uploadError) {
-        console.error('Upload error details:', uploadError);
-        throw new Error(uploadError.message || 'Failed to upload file');
-      }
+      if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
         .from('class-audio')
         .getPublicUrl(filePath);
 
       return urlData.publicUrl;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading audio:', error);
-      alert(`Failed to upload audio file: ${error.message || 'Unknown error'}\n\nPlease ensure the storage bucket is set up correctly.`);
+      alert('Failed to upload audio file');
       return null;
     } finally {
       setUploading(false);
@@ -107,12 +101,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     setLoading(true);
 
     try {
-      if (!content.trim() && (moduleType === 'text' || ((moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'ai'))) {
-        alert('Content is required for this lesson type');
-        setLoading(false);
-        return;
-      }
-
       let audioUrl: string | null = null;
 
       if ((moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'upload') {
@@ -130,7 +118,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
 
       const { error } = await supabase.from('classes').insert({
         title,
-        content: content.trim() || null,
+        content,
         level,
         module_type: moduleType,
         audio_url: audioUrl,
@@ -281,25 +269,14 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               rows={6}
               placeholder={
                 moduleType === 'audio_sentence' || moduleType === 'audio_paragraph'
-                  ? audioSource === 'upload'
-                    ? 'Optional: Enter the transcript/text that students will type...'
-                    : 'Enter the transcript/text that students will type...'
+                  ? 'Enter the transcript/text that students will type...'
                   : 'Enter the text content for this class...'
               }
-              required={
-                moduleType === 'text' ||
-                (moduleType === 'audio_sentence' && audioSource === 'ai') ||
-                (moduleType === 'audio_paragraph' && audioSource === 'ai')
-              }
+              required
             />
-            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'ai' && (
+            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && (
               <p className="text-xs text-gray-500 mt-1">
                 This text will be hidden from students during the lesson. They will only hear the audio.
-              </p>
-            )}
-            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'upload' && (
-              <p className="text-xs text-green-600 mt-1">
-                Transcript is optional when uploading audio. Students will type what they hear.
               </p>
             )}
           </div>
