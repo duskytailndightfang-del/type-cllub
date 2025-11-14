@@ -104,16 +104,16 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    const abacusApiKey = import.meta.env.VITE_ABACUS_AI_API_KEY;
+    const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
-    if (abacusApiKey && supabaseUrl && supabaseAnonKey) {
+    if (openaiApiKey && supabaseUrl && supabaseAnonKey) {
       setIsTranscribing(true);
       try {
-        console.log('Starting transcription with Abacus AI...');
+        console.log('Starting transcription with OpenAI Whisper...');
         const formData = new FormData();
         formData.append('audio', file);
         // Pass the API key from client side since edge functions can't access VITE_ prefixed vars
-        formData.append('apiKey', abacusApiKey);
+        formData.append('apiKey', openaiApiKey);
 
         const response = await fetch(`${supabaseUrl}/functions/v1/transcribe-audio`, {
           method: 'POST',
