@@ -112,6 +112,8 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
         console.log('Starting transcription with Abacus AI...');
         const formData = new FormData();
         formData.append('audio', file);
+        // Pass the API key from client side since edge functions can't access VITE_ prefixed vars
+        formData.append('apiKey', abacusApiKey);
 
         const response = await fetch(`${supabaseUrl}/functions/v1/transcribe-audio`, {
           method: 'POST',
