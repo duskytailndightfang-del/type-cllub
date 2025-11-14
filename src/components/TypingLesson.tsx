@@ -103,7 +103,10 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   };
 
   const speakText = () => {
-    if ('speechSynthesis' in window) {
+    if (classData.audio_url) {
+      const audio = new Audio(classData.audio_url);
+      audio.play();
+    } else if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(classData.content);
@@ -265,9 +268,22 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           <h2 className="text-3xl font-bold text-gray-900 mb-4">{classData.title}</h2>
 
-          <div className="bg-purple-50 rounded-lg p-6 mb-6">
-            <p className="text-gray-700 leading-relaxed text-lg">{classData.content}</p>
-          </div>
+          {classData.module_type === 'text' && (
+            <div className="bg-purple-50 rounded-lg p-6 mb-6">
+              <p className="text-gray-700 leading-relaxed text-lg">{classData.content}</p>
+            </div>
+          )}
+
+          {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
+            <div className="bg-green-50 rounded-lg p-6 mb-6 text-center">
+              <p className="text-gray-700 text-lg mb-2">
+                This is an audio lesson. Listen carefully and type what you hear.
+              </p>
+              <p className="text-sm text-gray-500">
+                The text is hidden - focus on listening!
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-4 mb-6">
             <div className="flex-1 bg-white border border-purple-200 rounded-lg p-4">

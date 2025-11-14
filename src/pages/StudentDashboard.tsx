@@ -403,7 +403,11 @@ export const StudentDashboard: React.FC = () => {
                       {classItem.module_type.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm line-clamp-2">{classItem.content}</p>
+                  {classItem.module_type === 'text' ? (
+                    <p className="text-gray-600 text-sm line-clamp-2">{classItem.content}</p>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">Audio lesson - Listen and type</p>
+                  )}
                 </div>
               ))}
             </div>

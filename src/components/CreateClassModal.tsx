@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface CreateClassModalProps {
@@ -39,6 +39,9 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   const [moduleType, setModuleType] = useState<'text' | 'audio_sentence' | 'audio_paragraph'>('text');
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [audioSource, setAudioSource] = useState<'ai' | 'upload'>('ai');
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const generateContent = async () => {
     setGenerating(true);
@@ -52,16 +55,73 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     }, 500);
   };
 
+  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a valid audio file (.mp3, .wav, or .m4a)');
+        return;
+      }
+      setAudioFile(file);
+    }
+  };
+
+  const uploadAudioFile = async (): Promise<string | null> => {
+    if (!audioFile) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = audioFile.name.split('.').pop();
+      const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
+      const filePath = `audio/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('class-audio')
+        .upload(filePath, audioFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('class-audio')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+      alert('Failed to upload audio file');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let audioUrl: string | null = null;
+
+      if ((moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && audioSource === 'upload') {
+        if (!audioFile) {
+          alert('Please select an audio file to upload');
+          setLoading(false);
+          return;
+        }
+        audioUrl = await uploadAudioFile();
+        if (!audioUrl) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const { error } = await supabase.from('classes').insert({
         title,
         content,
         level,
         module_type: moduleType,
+        audio_url: audioUrl,
         created_by: profile?.id,
       });
 
@@ -134,10 +194,63 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
             </select>
           </div>
 
+          {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Audio Source
+              </label>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setAudioSource('ai')}
+                  className={`px-4 py-3 border-2 rounded-lg transition-all ${
+                    audioSource === 'ai'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5 mx-auto mb-1" />
+                  <div className="text-sm font-medium">AI-Generated</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAudioSource('upload')}
+                  className={`px-4 py-3 border-2 rounded-lg transition-all ${
+                    audioSource === 'upload'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <Upload className="w-5 h-5 mx-auto mb-1" />
+                  <div className="text-sm font-medium">Upload Audio</div>
+                </button>
+              </div>
+
+              {audioSource === 'upload' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Audio File (.mp3, .wav, .m4a)
+                  </label>
+                  <input
+                    type="file"
+                    accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/mp4,audio/x-m4a"
+                    onChange={handleAudioFileChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {audioFile && (
+                    <p className="text-sm text-green-600 mt-2">
+                      Selected: {audioFile.name}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
-                Content
+                Content {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && '(Transcript)'}
               </label>
               <button
                 type="button"
@@ -154,9 +267,18 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               onChange={(e) => setContent(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={6}
-              placeholder="Enter the text content for this class..."
+              placeholder={
+                moduleType === 'audio_sentence' || moduleType === 'audio_paragraph'
+                  ? 'Enter the transcript/text that students will type...'
+                  : 'Enter the text content for this class...'
+              }
               required
             />
+            {(moduleType === 'audio_sentence' || moduleType === 'audio_paragraph') && (
+              <p className="text-xs text-gray-500 mt-1">
+                This text will be hidden from students during the lesson. They will only hear the audio.
+              </p>
+            )}
           </div>
 
           <div className="flex gap-4">

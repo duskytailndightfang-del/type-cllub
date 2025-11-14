@@ -26,6 +26,7 @@ export interface Class {
   content: string;
   level: 'beginner' | 'intermediate' | 'advanced' | 'all';
   module_type: 'text' | 'audio_sentence' | 'audio_paragraph';
+  audio_url?: string | null;
   created_by: string | null;
   created_at: string;
 }
