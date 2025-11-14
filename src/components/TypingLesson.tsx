@@ -40,6 +40,27 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const { playTypingSound, soundEnabled, toggleSound } = useTypingSound();
   const [backspaceEnabled, setBackspaceEnabled] = useState(true);
 
+  const lessonText = classData.content || '';
+
+  if (!lessonText) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Content Missing</h2>
+          <p className="text-gray-600 mb-6">
+            This lesson doesn't have any content to type. Please contact an administrator.
+          </p>
+          <button
+            onClick={onBack}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     checkIfFirstCompletion();
     return () => {
@@ -109,7 +130,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
     } else if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(classData.content);
+      const utterance = new SpeechSynthesisUtterance(lessonText);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
@@ -184,7 +205,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
     if (value.length > prevLength) {
       const newCharIndex = value.length - 1;
-      const isCorrect = value[newCharIndex] === classData.content[newCharIndex];
+      const isCorrect = value[newCharIndex] === lessonText[newCharIndex];
 
       if (isCorrect) {
         setCorrectKeystrokes(prev => prev + 1);
@@ -193,7 +214,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
       }
     } else if (value.length < prevLength) {
       const deletedCharIndex = value.length;
-      const wasCorrect = userInput[deletedCharIndex] === classData.content[deletedCharIndex];
+      const wasCorrect = userInput[deletedCharIndex] === lessonText[deletedCharIndex];
 
       if (wasCorrect) {
         setCorrectKeystrokes(prev => Math.max(0, prev - 1));
@@ -204,7 +225,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
     let errorCount = 0;
     for (let i = 0; i < value.length; i++) {
-      if (value[i] !== classData.content[i]) {
+      if (value[i] !== lessonText[i]) {
         errorCount++;
       }
     }
@@ -212,7 +233,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
     setUserInput(value);
 
-    if (value.length >= classData.content.length) {
+    if (value.length >= lessonText.length) {
       calculateResults();
     }
   };
@@ -244,7 +265,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
   const getCharacterClass = (index: number) => {
     if (index >= userInput.length) return 'text-gray-400';
-    if (userInput[index] === classData.content[index]) return 'text-green-600 bg-green-50';
+    if (userInput[index] === lessonText[index]) return 'text-green-600 bg-green-50';
     return 'text-red-600 bg-red-50';
   };
 
@@ -270,7 +291,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           {classData.module_type === 'text' && (
             <div className="bg-purple-50 rounded-lg p-6 mb-6">
-              <p className="text-gray-700 leading-relaxed text-lg">{classData.content}</p>
+              <p className="text-gray-700 leading-relaxed text-lg">{lessonText}</p>
             </div>
           )}
 
@@ -437,7 +458,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
 
           {classData.module_type === 'text' && (
             <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-2xl leading-relaxed">
-              {classData.content.split('').map((char, index) => (
+              {lessonText.split('').map((char, index) => (
                 <span key={index} className={getCharacterClass(index)}>
                   {char}
                 </span>
@@ -473,7 +494,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
           />
 
           <div className="flex justify-between items-center text-sm text-gray-600">
-            <div>Progress: {userInput.length} / {classData.content.length} characters</div>
+            <div>Progress: {userInput.length} / {lessonText.length} characters</div>
             <button
               onClick={calculateResults}
               className="px-4 py-2 text-white rounded transition-colors"
