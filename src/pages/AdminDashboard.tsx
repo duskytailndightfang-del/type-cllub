@@ -56,6 +56,14 @@ export const AdminDashboard: React.FC = () => {
     avgAccuracy: 0
   });
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -256,7 +264,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={signOut}
+              onClick={handleSignOut}
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl font-medium"
             >
               <LogOut className="w-4 h-4" />

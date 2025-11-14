@@ -33,6 +33,14 @@ export const StudentDashboard: React.FC = () => {
   const [ranking, setRanking] = useState<UserRanking | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   useEffect(() => {
     checkAssessmentStatus();
     if (profile?.level) {
@@ -210,7 +218,7 @@ export const StudentDashboard: React.FC = () => {
             Your account is awaiting admin approval. Please check back later.
           </p>
           <button
-            onClick={signOut}
+            onClick={handleSignOut}
             className="px-6 py-3 text-white rounded-lg transition-colors"
             style={{ backgroundColor: '#531B93' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
@@ -235,7 +243,7 @@ export const StudentDashboard: React.FC = () => {
             Your account has been denied by an administrator.
           </p>
           <button
-            onClick={signOut}
+            onClick={handleSignOut}
             className="px-6 py-3 text-white rounded-lg transition-colors"
             style={{ backgroundColor: '#531B93' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
@@ -281,7 +289,7 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={signOut}
+              onClick={handleSignOut}
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
             >
               <LogOut className="w-5 h-5" />
