@@ -60,23 +60,38 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     }, 500);
   };
 
-  const uploadAudioToStorage = async (audioDataUrl: string): Promise<string | null> => {
+  const uploadAudioToStorage = async (audioUrl: string): Promise<string | null> => {
     try {
-      const base64Data = audioDataUrl.split(',')[1];
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      let blob: Blob;
+
+      // Check if it's a blob URL or data URL
+      if (audioUrl.startsWith('blob:')) {
+        // Fetch the blob from the blob URL
+        const response = await fetch(audioUrl);
+        blob = await response.blob();
+      } else if (audioUrl.startsWith('data:')) {
+        // Convert data URL to blob
+        const base64Data = audioUrl.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], { type: 'audio/mpeg' });
+      } else {
+        throw new Error('Invalid audio URL format');
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'audio/mpeg' });
 
       const fileName = `${profile?.id}-${Date.now()}.mp3`;
       const filePath = `audio/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('class-audio')
-        .upload(filePath, blob);
+        .upload(filePath, blob, {
+          contentType: 'audio/mpeg',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
@@ -87,7 +102,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading audio:', error);
-      alert('Failed to upload audio file');
+      alert('Failed to upload audio file. Error: ' + (error instanceof Error ? error.message : String(error)));
       return null;
     }
   };
