@@ -466,6 +466,15 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             </div>
           )}
 
+          {(classData.module_type === 'audio_sentence' || classData.module_type === 'audio_paragraph') && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <div className="text-sm text-gray-600 mb-2 font-medium">Your Typing:</div>
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-4 min-h-[120px] font-mono text-xl leading-relaxed whitespace-pre-wrap break-words">
+                {userInput || <span className="text-gray-400 italic">Start typing what you hear...</span>}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-sm text-gray-600 mb-1">Accuracy</div>
