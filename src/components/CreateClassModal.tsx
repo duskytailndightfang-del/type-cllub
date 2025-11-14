@@ -179,7 +179,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Create New Class</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Create New Lesson</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -191,7 +191,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Class Title
+              Lesson Title
             </label>
             <input
               type="text"
@@ -324,7 +324,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
               disabled={loading}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Create Class'}
+              {loading ? 'Creating...' : 'Create Lesson'}
             </button>
           </div>
         </form>

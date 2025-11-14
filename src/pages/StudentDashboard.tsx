@@ -32,6 +32,7 @@ export const StudentDashboard: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [ranking, setRanking] = useState<UserRanking | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
   const handleSignOut = async () => {
     try {
@@ -47,6 +48,7 @@ export const StudentDashboard: React.FC = () => {
       fetchClasses();
       fetchRanking();
       fetchCertifications();
+      fetchCompletedLessons();
     }
   }, [profile]);
 
@@ -88,6 +90,18 @@ export const StudentDashboard: React.FC = () => {
     if (data) setCertifications(data);
   };
 
+  const fetchCompletedLessons = async () => {
+    const { data } = await supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', profile?.id || '');
+
+    if (data) {
+      const completedIds = new Set(data.map(item => item.lesson_id));
+      setCompletedLessons(completedIds);
+    }
+  };
+
   const formatTime = (hours: number) => {
     if (!hours || isNaN(hours)) return '0h 0m';
     const wholeHours = Math.floor(hours);
@@ -127,7 +141,7 @@ export const StudentDashboard: React.FC = () => {
 
     // Subtitle
     ctx.font = '24px Arial';
-    ctx.fillText('TypeMind AI - Typing Excellence Program', 600, 200);
+    ctx.fillText('TypeMindAI - Typing Excellence Program', 600, 200);
 
     // Student name
     ctx.font = 'italic 32px Arial';
@@ -198,6 +212,13 @@ export const StudentDashboard: React.FC = () => {
     window.location.reload();
   };
 
+  const handleLessonComplete = () => {
+    setSelectedClass(null);
+    fetchClasses();
+    fetchRanking();
+    fetchCompletedLessons();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
@@ -264,11 +285,7 @@ export const StudentDashboard: React.FC = () => {
     return (
       <TypingLesson
         classData={selectedClass}
-        onComplete={() => {
-          setSelectedClass(null);
-          fetchRanking();
-          fetchCertifications();
-        }}
+        onComplete={handleLessonComplete}
         onBack={() => setSelectedClass(null)}
       />
     );
@@ -282,9 +299,9 @@ export const StudentDashboard: React.FC = () => {
         <header className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6 border-2 transition-all duration-500" style={{ borderColor: ranking?.theme === 'gold' ? '#fbbf24' : ranking?.theme === 'silver' ? '#9ca3af' : ranking?.theme === 'bronze' ? '#fb923c' : '#a855f7' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src="/type mind.png" alt="TypeMind AI" className="w-20 h-auto" />
+              <img src="/type mind.png" alt="TypeMindAI" className="w-20 h-auto" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">TypeMind AI</h1>
+                <h1 className="text-3xl font-bold text-gray-900">TypeMindAI</h1>
                 <p className="text-gray-600">Welcome back, {profile?.full_name}</p>
               </div>
             </div>
@@ -396,28 +413,48 @@ export const StudentDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {classes.map((classItem) => (
-                <div
-                  key={classItem.id}
-                  className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => setSelectedClass(classItem)}
-                >
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">{classItem.title}</h3>
-                  <div className="flex gap-2 mb-3">
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
-                      {classItem.level}
-                    </span>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
-                      {classItem.module_type.replace('_', ' ')}
-                    </span>
+              {classes.map((classItem) => {
+                const isCompleted = completedLessons.has(classItem.id);
+                return (
+                  <div
+                    key={classItem.id}
+                    className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-400 hover:shadow-lg transition-all relative"
+                  >
+                    {isCompleted && (
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold border border-green-300 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </span>
+                      </div>
+                    )}
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 pr-24">{classItem.title}</h3>
+                    <div className="flex gap-2 mb-3">
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                        {classItem.level}
+                      </span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
+                        {classItem.module_type.replace('_', ' ')}
+                      </span>
+                    </div>
+                    {classItem.module_type === 'text' ? (
+                      <p className="text-gray-600 text-sm line-clamp-2 mb-4">{classItem.content}</p>
+                    ) : (
+                      <p className="text-gray-500 text-sm italic mb-4">Audio lesson - Listen and type</p>
+                    )}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => setSelectedClass(classItem)}
+                        className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      >
+                        {isCompleted ? 'Practice Again' : 'Start Lesson'}
+                      </button>
+                    </div>
                   </div>
-                  {classItem.module_type === 'text' ? (
-                    <p className="text-gray-600 text-sm line-clamp-2">{classItem.content}</p>
-                  ) : (
-                    <p className="text-gray-500 text-sm italic">Audio lesson - Listen and type</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

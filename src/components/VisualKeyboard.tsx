@@ -27,7 +27,7 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey, backs
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-300 shadow-2xl py-6 px-4 z-50">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Number Row */}
         <div className="flex justify-center gap-1 mb-1">
           <button className={getKeyClass('`', '~')}>
