@@ -109,7 +109,7 @@ export const StudentDashboard: React.FC = () => {
     return `${wholeHours}h ${minutes}m`;
   };
 
-  const downloadCertificate = (cert: Certification) => {
+  const downloadCertificate = async (cert: Certification) => {
     const canvas = document.createElement('canvas');
     canvas.width = 1600;
     canvas.height = 900;
@@ -118,6 +118,18 @@ export const StudentDashboard: React.FC = () => {
 
     // Determine background based on rank level
     const rankLevel = cert.rank_achieved.split('-')[0];
+
+    // Load images
+    const topLogo = new Image();
+    const bottomLogo = new Image();
+
+    topLogo.src = '/type mind copy.png';
+    bottomLogo.src = '/og logo 512 copy.png';
+
+    await Promise.all([
+      new Promise((resolve) => { topLogo.onload = resolve; }),
+      new Promise((resolve) => { bottomLogo.onload = resolve; })
+    ]);
 
     // White background for all certificates
     ctx.fillStyle = '#ffffff';
@@ -146,19 +158,10 @@ export const StudentDashboard: React.FC = () => {
       }
     }
 
-    // Logo area at top (purple rounded rectangle)
-    ctx.fillStyle = '#531b93';
-    ctx.beginPath();
-    ctx.roundRect(700, 80, 200, 100, 20);
-    ctx.fill();
-
-    // Logo text placeholder
-    ctx.fillStyle = '#009193';
-    ctx.font = 'bold 28px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Type', 800, 120);
-    ctx.fillStyle = '#531b93';
-    ctx.fillText('MindAI', 800, 150);
+    // Top logo - TypeMindAI
+    const topLogoWidth = 250;
+    const topLogoHeight = 150;
+    ctx.drawImage(topLogo, (1600 - topLogoWidth) / 2, 70, topLogoWidth, topLogoHeight);
 
     // Main title - CERTIFICATE OF ACHIEVEMENT
     ctx.fillStyle = '#531b93';
@@ -191,15 +194,10 @@ export const StudentDashboard: React.FC = () => {
     ctx.font = '32px Arial';
     ctx.fillText(' in typing training.', 1020, 550);
 
-    // Bottom logo (purple rounded square)
-    ctx.fillStyle = '#531b93';
-    ctx.beginPath();
-    ctx.roundRect(700, 650, 200, 100, 20);
-    ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 48px Arial';
-    ctx.fillText('OG', 800, 715);
+    // Bottom logo - OG
+    const bottomLogoWidth = 200;
+    const bottomLogoHeight = 120;
+    ctx.drawImage(bottomLogo, (1600 - bottomLogoWidth) / 2, 650, bottomLogoWidth, bottomLogoHeight);
 
     // Download
     canvas.toBlob((blob) => {
