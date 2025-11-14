@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mic, Upload, Volume2, Loader2, Play, Pause, AlertCircle } from 'lucide-react';
+import { Mic, Upload, Volume2, Loader2, Play, Pause, AlertCircle, Sparkles } from 'lucide-react';
 
 interface AudioLessonCreatorProps {
   onAudioCreated: (audioData: {
@@ -31,6 +31,63 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isGeneratingText, setIsGeneratingText] = useState(false);
+
+  const handleGenerateText = async () => {
+    const abacusApiKey = import.meta.env.VITE_ABACUS_AI_API_KEY;
+    if (!abacusApiKey) {
+      alert('Please add your Abacus AI API key to the .env file as VITE_ABACUS_AI_API_KEY');
+      return;
+    }
+
+    setIsGeneratingText(true);
+    try {
+      console.log('Generating healthcare text with Abacus AI...');
+
+      const response = await fetch('https://api.abacus.ai/api/v0/deployments/chatllm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Key': abacusApiKey,
+        },
+        body: JSON.stringify({
+          deployment_token: 'e7d5ba04f3d047c69a38514cbf47c09e',
+          deployment_id: '09ee94c9e9',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a medical typing tutor. Generate healthcare and medical-related sentences for typing practice. Sentences should be professional, clear, and appropriate for medical professionals or students learning medical terminology.'
+            },
+            {
+              role: 'user',
+              content: 'Generate a single medical or healthcare-related sentence for typing practice. Make it professional and realistic, between 50-150 characters. Only return the sentence, nothing else.'
+            }
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Abacus AI error:', errorText);
+        throw new Error(`Failed to generate text: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const generatedText = data.messages?.[0]?.content || data.content || '';
+
+      if (generatedText.trim()) {
+        setTranscript(generatedText.trim());
+        console.log('Text generated successfully:', generatedText);
+      } else {
+        throw new Error('No text generated');
+      }
+    } catch (error) {
+      console.error('Error generating text:', error);
+      alert('Failed to generate text. Please try again or enter text manually.');
+    } finally {
+      setIsGeneratingText(false);
+    }
+  };
 
   const handleGenerateAudio = async () => {
     if (!transcript.trim()) {
@@ -255,9 +312,28 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Text Transcript
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Text Transcript
+            </label>
+            <button
+              onClick={handleGenerateText}
+              disabled={isGeneratingText}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm rounded-md hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGeneratingText ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Generate AI Text
+                </>
+              )}
+            </button>
+          </div>
           <textarea
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
@@ -265,6 +341,9 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter the text you want to convert to speech..."
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Tip: Click "Generate AI Text" for healthcare-related sentences, or type your own text
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
