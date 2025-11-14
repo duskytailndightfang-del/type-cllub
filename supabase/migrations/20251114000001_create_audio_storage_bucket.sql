@@ -22,26 +22,50 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
-CREATE POLICY "Authenticated admins can upload audio files"
-  ON storage.objects
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    bucket_id = 'class-audio' AND
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+    AND tablename = 'objects'
+    AND policyname = 'Admins can upload class audio files'
+  ) THEN
+    CREATE POLICY "Admins can upload class audio files"
+      ON storage.objects
+      FOR INSERT
+      TO authenticated
+      WITH CHECK (
+        bucket_id = 'class-audio' AND
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
+      );
+  END IF;
 
-CREATE POLICY "Anyone can view audio files"
-  ON storage.objects
-  FOR SELECT
-  TO public
-  USING (bucket_id = 'class-audio');
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+    AND tablename = 'objects'
+    AND policyname = 'Public can view class audio files'
+  ) THEN
+    CREATE POLICY "Public can view class audio files"
+      ON storage.objects
+      FOR SELECT
+      TO public
+      USING (bucket_id = 'class-audio');
+  END IF;
 
-CREATE POLICY "Authenticated admins can delete audio files"
-  ON storage.objects
-  FOR DELETE
-  TO authenticated
-  USING (
-    bucket_id = 'class-audio' AND
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+    AND tablename = 'objects'
+    AND policyname = 'Admins can delete class audio files'
+  ) THEN
+    CREATE POLICY "Admins can delete class audio files"
+      ON storage.objects
+      FOR DELETE
+      TO authenticated
+      USING (
+        bucket_id = 'class-audio' AND
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
+      );
+  END IF;
+END $$;

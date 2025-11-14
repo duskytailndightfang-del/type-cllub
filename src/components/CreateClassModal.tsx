@@ -76,20 +76,26 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
       const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
       const filePath = `audio/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('class-audio')
-        .upload(filePath, audioFile);
+        .upload(filePath, audioFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw new Error(uploadError.message || 'Failed to upload file');
+      }
 
       const { data: urlData } = supabase.storage
         .from('class-audio')
         .getPublicUrl(filePath);
 
       return urlData.publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading audio:', error);
-      alert('Failed to upload audio file');
+      alert(`Failed to upload audio file: ${error.message || 'Unknown error'}\n\nPlease ensure the storage bucket is set up correctly.`);
       return null;
     } finally {
       setUploading(false);
