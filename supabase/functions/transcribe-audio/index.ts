@@ -29,10 +29,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const openAiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openAiApiKey) {
+    const abacusApiKey = Deno.env.get("ABACUS_AI_API_KEY");
+    if (!abacusApiKey) {
       return new Response(
-        JSON.stringify({ error: "OpenAI API key not configured" }),
+        JSON.stringify({ error: "Abacus AI API key not configured" }),
         {
           status: 500,
           headers: {
@@ -45,23 +45,21 @@ Deno.serve(async (req: Request) => {
 
     const transcriptionFormData = new FormData();
     transcriptionFormData.append("file", audioFile);
-    transcriptionFormData.append("model", "whisper-1");
-    transcriptionFormData.append("response_format", "json");
 
-    const openAiResponse = await fetch(
-      "https://api.openai.com/v1/audio/transcriptions",
+    const abacusResponse = await fetch(
+      "https://api.abacus.ai/api/v0/audioToText",
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${openAiApiKey}`,
+          "Authorization": `Bearer ${abacusApiKey}`,
         },
         body: transcriptionFormData,
       }
     );
 
-    if (!openAiResponse.ok) {
-      const errorText = await openAiResponse.text();
-      console.error("OpenAI API error:", errorText);
+    if (!abacusResponse.ok) {
+      const errorText = await abacusResponse.text();
+      console.error("Abacus AI API error:", errorText);
       return new Response(
         JSON.stringify({ error: "Failed to transcribe audio" }),
         {
@@ -74,11 +72,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const transcriptionData = await openAiResponse.json();
+    const transcriptionData = await abacusResponse.json();
 
     return new Response(
       JSON.stringify({
-        transcript: transcriptionData.text,
+        transcript: transcriptionData.text || transcriptionData.transcription || "",
         success: true,
       }),
       {

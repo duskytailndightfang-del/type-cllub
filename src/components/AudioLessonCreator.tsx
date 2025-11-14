@@ -39,6 +39,8 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
 
     setIsGenerating(true);
     try {
+      console.log('Generating audio...', { text: transcript.substring(0, 50), voiceId: selectedVoice });
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-audio`,
         {
@@ -55,15 +57,19 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to generate audio');
+        console.error('Generate audio failed:', data);
+        throw new Error(data.error || data.details || 'Failed to generate audio');
       }
 
-      const data = await response.json();
+      console.log('Audio generated successfully');
       setGeneratedAudioUrl(data.audioUrl);
     } catch (error) {
       console.error('Error generating audio:', error);
-      alert('Failed to generate audio. Please check your ElevenLabs API key.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to generate audio: ${errorMessage}\n\nPlease ensure your ElevenLabs API key is configured in Supabase Edge Function secrets.`);
     } finally {
       setIsGenerating(false);
     }
@@ -82,6 +88,8 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
     setIsTranscribing(true);
 
     try {
+      console.log('Transcribing audio file:', file.name);
+
       const formData = new FormData();
       formData.append('audio', file);
 
@@ -96,11 +104,14 @@ export const AudioLessonCreator: React.FC<AudioLessonCreatorProps> = ({ onAudioC
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to transcribe audio');
+        console.error('Transcription failed:', data);
+        throw new Error(data.error || 'Failed to transcribe audio');
       }
 
-      const data = await response.json();
+      console.log('Transcription successful:', data);
       setTranscript(data.transcript);
 
       const audioUrl = URL.createObjectURL(file);

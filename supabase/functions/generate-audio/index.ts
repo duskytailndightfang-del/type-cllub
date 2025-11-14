@@ -10,6 +10,19 @@ interface RequestPayload {
   speed?: number;
 }
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const uint8Array = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  const chunks = [];
+
+  for (let i = 0; i < uint8Array.length; i += chunkSize) {
+    const chunk = uint8Array.subarray(i, i + chunkSize);
+    chunks.push(String.fromCharCode(...chunk));
+  }
+
+  return btoa(chunks.join(''));
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -36,8 +49,11 @@ Deno.serve(async (req: Request) => {
 
     const elevenLabsApiKey = Deno.env.get("ELEVENLABS_API_KEY");
     if (!elevenLabsApiKey) {
+      console.error("ELEVENLABS_API_KEY environment variable not set");
       return new Response(
-        JSON.stringify({ error: "ElevenLabs API key not configured" }),
+        JSON.stringify({
+          error: "ElevenLabs API key not configured. Please add your API key to the Supabase Edge Function secrets."
+        }),
         {
           status: 500,
           headers: {
@@ -47,6 +63,8 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    console.log("Generating audio with ElevenLabs...", { textLength: text.length, voiceId, speed });
 
     const elevenLabsResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -63,7 +81,6 @@ Deno.serve(async (req: Request) => {
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
-            speed: speed,
           },
         }),
       }
@@ -71,9 +88,16 @@ Deno.serve(async (req: Request) => {
 
     if (!elevenLabsResponse.ok) {
       const errorText = await elevenLabsResponse.text();
-      console.error("ElevenLabs API error:", errorText);
+      console.error("ElevenLabs API error:", {
+        status: elevenLabsResponse.status,
+        statusText: elevenLabsResponse.statusText,
+        error: errorText
+      });
       return new Response(
-        JSON.stringify({ error: "Failed to generate audio from ElevenLabs" }),
+        JSON.stringify({
+          error: "Failed to generate audio from ElevenLabs",
+          details: errorText
+        }),
         {
           status: 500,
           headers: {
@@ -85,13 +109,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const audioBlob = await elevenLabsResponse.arrayBuffer();
+    console.log("Audio generated successfully, size:", audioBlob.byteLength);
 
-    const fileName = `${crypto.randomUUID()}.mp3`;
-    const filePath = `/tmp/${fileName}`;
-    await Deno.writeFile(filePath, new Uint8Array(audioBlob));
-
-    const fileData = await Deno.readFile(filePath);
-    const base64Audio = btoa(String.fromCharCode(...fileData));
+    const base64Audio = arrayBufferToBase64(audioBlob);
 
     return new Response(
       JSON.stringify({
@@ -108,7 +128,10 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error in generate-audio function:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : String(error)
+      }),
       {
         status: 500,
         headers: {
