@@ -389,7 +389,11 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100" style={{ paddingBottom: '320px' }}>
+    <div
+      className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100"
+      style={{ paddingBottom: '320px' }}
+      onClick={() => inputRef.current?.focus()}
+    >
       <div className="p-4 max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-4">
           <div className="flex items-center justify-between mb-6">
@@ -461,13 +465,14 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             value={userInput}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="w-full px-6 py-4 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-2xl resize-none"
-            rows={8}
-            placeholder="Start typing here..."
+            className="absolute opacity-0 pointer-events-none"
+            rows={1}
             autoFocus
+            tabIndex={0}
+            aria-hidden="false"
           />
 
-          <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+          <div className="flex justify-between items-center text-sm text-gray-600">
             <div>Progress: {userInput.length} / {classData.content.length} characters</div>
             <button
               onClick={calculateResults}
