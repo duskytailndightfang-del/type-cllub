@@ -4,7 +4,7 @@ import { supabase, Profile, Class } from '../lib/supabase';
 import {
   LogOut, Users, BookOpen, CheckCircle, XCircle, Plus, Trophy, Clock, Target,
   TrendingUp, Medal, Trash2, Activity, Award, Zap, BarChart3, PieChart,
-  Brain, Sparkles, UserCheck, UserX, Timer
+  Brain, Sparkles, UserCheck, UserX, Timer, Shield
 } from 'lucide-react';
 import { CreateClassModal } from '../components/CreateClassModal';
 import { StudentAnalytics } from '../components/StudentAnalytics';
@@ -43,7 +43,7 @@ export const AdminDashboard: React.FC = () => {
   const [lessons, setLessons] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'lessons' | 'leaderboard'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'lessons' | 'admins' | 'leaderboard'>('dashboard');
   const [selectedUser, setSelectedUser] = useState<UserWithRanking | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -250,14 +250,14 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-teal-50 to-purple-100">
       <nav className="bg-white/90 backdrop-blur-lg shadow-lg border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <img src="/type mind.png" alt="TypeMindAI" className="w-16 h-auto" />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-gray-900">
                   TypeMindAI
                 </h1>
                 <p className="text-sm text-slate-600">Administrator Dashboard</p>
@@ -265,7 +265,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl font-medium"
+              className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium"
+              style={{ backgroundColor: '#531b93' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531b93'}
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -280,6 +283,7 @@ export const AdminDashboard: React.FC = () => {
             { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
             { id: 'users', icon: Users, label: `Users (${users.length})` },
             { id: 'lessons', icon: BookOpen, label: `Lessons (${lessons.length})` },
+            { id: 'admins', icon: Shield, label: 'Admins' },
             { id: 'leaderboard', icon: Trophy, label: 'Leaderboard' }
           ].map(tab => (
             <button
@@ -287,9 +291,10 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white scale-105'
+                  ? 'text-white scale-105'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
+              style={activeTab === tab.id ? { backgroundColor: '#531b93' } : {}}
             >
               <tab.icon className="w-5 h-5" />
               {tab.label}
@@ -547,7 +552,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+                className="flex items-center gap-2 px-6 py-3 text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-semibold"
+                style={{ backgroundColor: '#009193' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#006d6f'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#009193'}
               >
                 <Plus className="w-5 h-5" />
                 Create Lesson
@@ -576,6 +584,60 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-slate-600 text-sm line-clamp-3">{lesson.content}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'admins' && (
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 rounded-xl" style={{ backgroundColor: '#531b93' }}>
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Admin Accounts</h2>
+                <p className="text-slate-600">Manage administrator access</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {users.filter(user => user.role === 'admin').map((admin) => (
+                <div
+                  key={admin.id}
+                  className="flex items-center justify-between p-6 rounded-xl border-2 border-slate-200 hover:border-purple-300 transition-all bg-gradient-to-r from-purple-50 to-white"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#009193' }}>
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg text-slate-900">{admin.full_name}</div>
+                      <div className="text-sm text-slate-600">{admin.email}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: '#531b93' }}>
+                      Administrator
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      admin.status === 'approved'
+                        ? 'bg-green-100 text-green-700'
+                        : admin.status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {admin.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {users.filter(user => user.role === 'admin').length === 0 && (
+                <div className="text-center py-16 text-slate-500">
+                  <Shield className="w-20 h-20 mx-auto mb-4 text-slate-300" />
+                  <p className="text-lg font-medium">No admin accounts found.</p>
+                </div>
+              )}
             </div>
           </div>
         )}

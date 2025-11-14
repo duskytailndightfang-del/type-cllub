@@ -116,25 +116,44 @@ export const StudentDashboard: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Determine background based on rank level
+    const rankLevel = cert.rank_achieved.split('-')[0];
+    let bgColor1 = '#ffffff';
+    let bgColor2 = '#ffffff';
+
+    if (rankLevel === 'D' || rankLevel === 'C') {
+      // Beginner: White
+      bgColor1 = '#ffffff';
+      bgColor2 = '#f9fafb';
+    } else if (rankLevel === 'B' || rankLevel === 'A') {
+      // Intermediate: Teal
+      bgColor1 = '#009193';
+      bgColor2 = '#006d6f';
+    } else if (rankLevel === 'S') {
+      // Advanced: Purple
+      bgColor1 = '#531b93';
+      bgColor2 = '#3d1470';
+    }
+
     // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
-    gradient.addColorStop(0, '#667eea');
-    gradient.addColorStop(1, '#764ba2');
+    gradient.addColorStop(0, bgColor1);
+    gradient.addColorStop(1, bgColor2);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1200, 800);
 
-    // Border
-    ctx.strokeStyle = '#fbbf24';
+    // Border - Teal
+    ctx.strokeStyle = '#009193';
     ctx.lineWidth = 20;
     ctx.strokeRect(40, 40, 1120, 720);
 
-    // Inner border
-    ctx.strokeStyle = '#ffffff';
+    // Inner border - Purple
+    ctx.strokeStyle = '#531b93';
     ctx.lineWidth = 3;
     ctx.strokeRect(60, 60, 1080, 680);
 
-    // Title
-    ctx.fillStyle = '#ffffff';
+    // Title - Teal for white bg, white for colored bg
+    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#009193' : '#ffffff';
     ctx.font = 'bold 60px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('CERTIFICATE OF ACHIEVEMENT', 600, 150);
@@ -147,21 +166,23 @@ export const StudentDashboard: React.FC = () => {
     ctx.font = 'italic 32px Arial';
     ctx.fillText('This certifies that', 600, 280);
     ctx.font = 'bold 48px Arial';
+    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#1f2937' : '#ffffff';
     ctx.fillText(profile?.full_name || 'Student', 600, 350);
 
     // Achievement text
+    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#009193' : '#ffffff';
     ctx.font = 'italic 28px Arial';
     ctx.fillText('has successfully achieved', 600, 410);
 
-    // Rank badge
-    ctx.fillStyle = '#fbbf24';
+    // Rank badge - Purple background
+    ctx.fillStyle = '#531b93';
     ctx.fillRect(450, 440, 300, 80);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 42px Arial';
     ctx.fillText(cert.rank_achieved, 600, 490);
 
     // Stats
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#1f2937' : '#ffffff';
     ctx.font = '22px Arial';
     ctx.textAlign = 'left';
     ctx.fillText(`Total Points: ${cert.points_at_issue}`, 300, 580);
@@ -172,6 +193,7 @@ export const StudentDashboard: React.FC = () => {
     // Footer
     ctx.textAlign = 'center';
     ctx.font = 'italic 18px Arial';
+    ctx.fillStyle = rankLevel === 'D' || rankLevel === 'C' ? '#531b93' : '#ffffff';
     ctx.fillText('For demonstrating exceptional typing proficiency and dedication', 600, 700);
 
     // Download
@@ -391,7 +413,10 @@ export const StudentDashboard: React.FC = () => {
                   </div>
                   <button
                     onClick={() => downloadCertificate(cert)}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all text-sm font-semibold"
+                    className="w-full px-4 py-2 text-white rounded-lg transition-all text-sm font-semibold"
+                    style={{ backgroundColor: '#531b93' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#42166f'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#531b93'}
                   >
                     Download Certificate
                   </button>
