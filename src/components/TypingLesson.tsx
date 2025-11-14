@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase, Class } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Volume2, VolumeX, Clock, Target, Award, Delete } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Clock, Target, Award } from 'lucide-react';
 import { useTypingSound } from '../hooks/useTypingSound';
 import { VisualKeyboard } from './VisualKeyboard';
 
@@ -38,7 +38,6 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { playTypingSound, soundEnabled, toggleSound } = useTypingSound();
-  const [backspaceEnabled, setBackspaceEnabled] = useState(true);
 
   useEffect(() => {
     checkIfFirstCompletion();
@@ -162,11 +161,6 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!backspaceEnabled && (e.key === 'Backspace' || e.key === 'Delete')) {
-      e.preventDefault();
-      return;
-    }
-
     setActiveKey(e.key);
     playTypingSound();
 
@@ -380,18 +374,6 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
             <h2 className="text-2xl font-bold text-gray-900">{classData.title}</h2>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setBackspaceEnabled(!backspaceEnabled)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
-                  backspaceEnabled
-                    ? 'bg-purple-600 text-white hover:bg-purple-700'
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                }`}
-                title={backspaceEnabled ? 'Backspace: ON' : 'Backspace: OFF'}
-              >
-                <Delete className="w-4 h-4" />
-                <span className="text-xs font-medium">{backspaceEnabled ? 'ON' : 'OFF'}</span>
-              </button>
-              <button
                 onClick={toggleSound}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
                   soundEnabled
@@ -466,7 +448,7 @@ export const TypingLesson: React.FC<TypingLessonProps> = ({ classData, onComplet
         </div>
       </div>
 
-      <VisualKeyboard activeKey={activeKey} backspaceEnabled={backspaceEnabled} />
+      <VisualKeyboard activeKey={activeKey} />
     </div>
   );
 };

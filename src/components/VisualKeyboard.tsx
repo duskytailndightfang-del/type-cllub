@@ -2,10 +2,9 @@ import React from 'react';
 
 interface VisualKeyboardProps {
   activeKey: string | null;
-  backspaceEnabled?: boolean;
 }
 
-export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey, backspaceEnabled = true }) => {
+export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey }) => {
   const getKeyClass = (key: string, altKey?: string) => {
     const isActive = activeKey === key || (altKey && activeKey === altKey);
     const baseClass = "px-3 py-2 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all";
@@ -13,16 +12,12 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey, backs
     return `${baseClass} ${activeClass}`;
   };
 
-  const getSpecialKeyClass = (keys: string | string[], isBackspace = false) => {
+  const getSpecialKeyClass = (keys: string | string[]) => {
     const keyList = Array.isArray(keys) ? keys : [keys];
     const isActive = keyList.some(k => activeKey === k);
-    const isDisabled = isBackspace && !backspaceEnabled;
-    const baseClass = "px-4 py-2 border border-gray-300 rounded text-xs font-medium transition-all";
-    const stateClass = isDisabled
-      ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-50"
-      : "bg-gray-50 text-gray-600 hover:bg-gray-100";
-    const activeClass = isActive && !isDisabled ? "bg-purple-600 text-white border-purple-700" : "";
-    return `${baseClass} ${stateClass} ${activeClass}`;
+    const baseClass = "px-4 py-2 bg-gray-50 border border-gray-300 rounded text-xs font-medium text-gray-600 hover:bg-gray-100 transition-all";
+    const activeClass = isActive ? "bg-purple-600 text-white border-purple-700" : "";
+    return `${baseClass} ${activeClass}`;
   };
 
   return (
@@ -82,7 +77,7 @@ export const VisualKeyboard: React.FC<VisualKeyboardProps> = ({ activeKey, backs
             <div className="text-xs">+</div>
             <div>=</div>
           </button>
-          <button className={getSpecialKeyClass(['Backspace'], true)} disabled={!backspaceEnabled}>Backspace</button>
+          <button className={getSpecialKeyClass(['Backspace'])}>Backspace</button>
         </div>
 
         {/* First Letter Row */}
