@@ -153,8 +153,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
 
       const { error } = await supabase.from('classes').insert({
         title,
-        content: moduleType === 'text' ? content : null,
-        transcript,
+        content: transcript || content,
         level,
         module_type: moduleType,
         audio_url: audioUrl,
